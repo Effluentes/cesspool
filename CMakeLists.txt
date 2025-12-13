@@ -1,8 +1,33 @@
 cmake_minimum_required(VERSION 3.22)
 
-set(CMAKE_CXX_STANDARD_REQUIRED 17)
+include(CMakeDependentOption)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-set(EXTRA_COMPONENT_DIRS cesspool)
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
+    message(FATAL_ERROR "In-source builds not allowed. Please make a build directory.")
+endif()
+
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+set(NODE_TYPE master)
+option(BUILD_MASTER_NODE "Build the master node" ON)
+if(NOT BUILD_MASTER_NODE)
+  set(NODE_TYPE slave)
+endif()
+set(MAIN_DIR ${CMAKE_SOURCE_DIR}/cesspool/${NODE_TYPE})
+message(STATUS "building for: ${MAIN_DIR}")
+set(EXTRA_COMPONENT_DIRS ${MAIN_DIR} ${CMAKE_SOURCE_DIR}/components)
+add_subdirectory(${CMAKE_SOURCE_DIR}/packages)
+# set(ADDITIONAL_PACKAGES ${CMAKE_SOURCE_DIR}/packages)
+set(EXTRA_COMPONENTS_DIRS  ${ADDITIONAL_PACKAGES})
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-project(cesspool)
+project(
+  cesspool
+  VERSION 0.1.0
+  LANGUAGES CXX)
+
+
