@@ -1,4 +1,5 @@
-#include "CC1101.hh"
+#include "communication/radio/transceivers/cc1101/CC1101.hh"
+
 namespace communication::radio::transceivers {
 CC1101::CC1101() {}
 CC1101::~CC1101() {}

@@ -4,5 +4,5 @@ idf_component_register(SRCS
 					   EMBED_FILES
 					   )
 
-target_link_libraries(${COMPONENT_TARGET} INTERFACE cesspool::communication::::transceivers)
+target_link_libraries(${COMPONENT_TARGET} INTERFACE communication::radio::transceivers::cc1101)
 message(STATUS "ESP component ${COMPONENT_NAME}")

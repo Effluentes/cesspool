@@ -20,7 +20,6 @@ endif()
 set(MAIN_DIR ${CMAKE_SOURCE_DIR}/cesspool/${NODE_TYPE})
 message(STATUS "building for: ${MAIN_DIR}")
 set(EXTRA_COMPONENT_DIRS ${MAIN_DIR} ${CMAKE_SOURCE_DIR}/components)
-add_subdirectory(${CMAKE_SOURCE_DIR}/packages)
 # set(ADDITIONAL_PACKAGES ${CMAKE_SOURCE_DIR}/packages)
 set(EXTRA_COMPONENTS_DIRS  ${ADDITIONAL_PACKAGES})
 
@@ -31,3 +30,4 @@ project(
   LANGUAGES CXX)
 
 
+add_subdirectory(${CMAKE_SOURCE_DIR}/packages)
