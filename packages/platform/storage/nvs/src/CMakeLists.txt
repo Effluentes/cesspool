@@ -1,10 +1,9 @@
-project(${PACKAGE_NAME}_${MODULE_NAME}_${SUBMODULE_NAME}_${COMPONENT_NAME})
+project(${PACKAGE_NAME}_${MODULE_NAME}_${SUBMODULE_NAME})
 
+message(STATUS "Configuring ${PROJECT_NAME}...")
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} SOURCE)
 add_library(${PROJECT_NAME} ${SOURCE})
-message(STATUS "ADDED lib: ${PACKAGE_NAME}::${MODULE_NAME}::${SUBMODULE_NAME}::${COMPONENT_NAME}")
-add_library(${PACKAGE_NAME}::${MODULE_NAME}::${SUBMODULE_NAME}::${COMPONENT_NAME} ALIAS ${PROJECT_NAME})
-message(STATUS "Added component: ${PACKAGE_NAME}::${COMPONENT_NAME}::${MODULE_NAME}::${SUBMODULE_NAME}")
+add_library(${PACKAGE_NAME}::${MODULE_NAME}::${SUBMODULE_NAME} ALIAS ${PROJECT_NAME})
 set_target_properties(
   ${PROJECT_NAME}
   PROPERTIES
@@ -37,6 +36,13 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/../include/
 )
+
+target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+        platform::storage::storage
+        idf::nvs_flash
+)
+
 target_compile_options(
   ${PROJECT_NAME}
   PRIVATE $<$<CXX_COMPILER_ID:CXX,GNU>:$<$<CONFIG:Release>:${GCC_FLAGS_RELEASE}>>
