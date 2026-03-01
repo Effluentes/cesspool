@@ -1,33 +1,32 @@
 #pragma once
 
-#include "platform/bluetooth/gap/interface/BluetoothGAP.hh"
+#include "platform/bluetooth/gap/interface/GAP.hh"
 #include <NimBLEDevice.h>
 #include <vector>
 
-namespace platform::bluetooth::nimble {
+namespace platform::bluetooth {
 
 class NimBLEGAP final
-    : public interface::BluetoothGAP
+    : public interface::GAP
     , public NimBLEServerCallbacks
 {
 public:
-    explicit NimBLEGAP(NimBLEServer& server);
+    explicit NimBLEGAP(NimBLEServer& );
     ~NimBLEGAP() override = default;
 
-    // BluetoothGAP
     void startAdvertising() override;
     void stopAdvertising()  override;
     bool isAdvertising() const override;
     bool isConnected()   const override;
 
-    void addObserver(interface::BluetoothGAPObserver& observer) override;
-    void removeObserver(interface::BluetoothGAPObserver& observer) override;
+    void addObserver(interface::BluetoothGAPObserver& ) override;
+    void removeObserver(interface::BluetoothGAPObserver& ) override;
 
 private:
-    void onConnect(NimBLEServer* server, NimBLEConnInfo& info) override;
-    void onDisconnect(NimBLEServer* server, NimBLEConnInfo& info, int reason) override;
+    void onConnect(NimBLEServer* , NimBLEConnInfo& ) override;
+    void onDisconnect(NimBLEServer* , NimBLEConnInfo& , int ) override;
 
-    void notifyObservers(const interface::ConnectionEvent& event, bool connected);
+    void notifyObservers(const interface::ConnectionEvent& , bool );
 
     NimBLEServer&                                  server_;
     NimBLEAdvertising*                             advertising_;

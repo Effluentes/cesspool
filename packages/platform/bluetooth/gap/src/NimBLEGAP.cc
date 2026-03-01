@@ -1,6 +1,6 @@
 #include "platform/bluetooth/gap/NimBLEGAP.hh"
 
-namespace platform::bluetooth::nimble {
+namespace platform::bluetooth {
 
 NimBLEGAP::NimBLEGAP(NimBLEServer& server)
     : server_(server)
