@@ -2,7 +2,7 @@
 
 namespace platform::bsp
 {
-    StartupBuilder::Result StartupBuilder::build()
+    StartupResult StartupBuilder::build()
     {
         if(with.nvs)
         {
@@ -20,7 +20,7 @@ namespace platform::bsp
         return *this;
     }
 
-    StartupBuilder::Result StartupBuilder::initializeNvs()
+    StartupResult StartupBuilder::initializeNvs()
     {
         return {};
     }

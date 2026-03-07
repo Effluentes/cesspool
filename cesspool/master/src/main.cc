@@ -1,4 +1,3 @@
-//custiom headers
 #include <platform/bsp/startup/StartupBuilder.hh>
 
 extern "C" void app_main() {

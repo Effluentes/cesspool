@@ -40,6 +40,7 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
+    platform::bsp::startup_result
 )
 
 target_compile_options(

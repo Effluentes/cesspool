@@ -1,19 +1,13 @@
 #pragma once
-#include <expected>
-
+#include "platform/bsp/startup_result/StartupError.hh"
 namespace platform::bsp
 {
 class StartupBuilder
 {
     public:
-    enum class StartupError
-    {
-        NvsInitFailed = 0
-    };
-    using Result = std::expected<void, StartupError>;
     StartupBuilder() = default;
 
-    Result build();
+    StartupResult build();
 
     StartupBuilder& withNvs();
 
@@ -23,6 +17,6 @@ class StartupBuilder
         bool nvs = false;
     }with;
 
-    Result initializeNvs();
+    StartupResult initializeNvs();
 };
 }
