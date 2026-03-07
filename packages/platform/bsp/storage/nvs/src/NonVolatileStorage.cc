@@ -1,7 +1,7 @@
-#include "platform/storage/nvs/NonVolatileStorage.hh"
+#include "platform/bsp/storage/nvs/NonVolatileStorage.hh"
 #include <nvs_flash.h>
 
-namespace platform::storage
+namespace platform::bsp
 {
 NonVolatileStorage::NonVolatileStorage()
 {
@@ -17,13 +17,13 @@ bool NonVolatileStorage::erase()
     return nvs_flash_erase() == ESP_OK;
 }
 
-bool NonVolatileStorage::initialize()
+StartupResult NonVolatileStorage::initialize()
 {
     esp_err_t err = nvs_flash_init();
     if (err != ESP_OK) {
         erase();
-        return false;
+        return std::unexpected(StartupError::STORAGE_INIT_FAILED);
     }
-    return true;
+    return {};
 }
 }

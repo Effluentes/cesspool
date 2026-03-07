@@ -1,9 +1,8 @@
-project(${PACKAGE_NAME}_${MODULE_NAME}_${SUBMODULE_NAME})
+project(${PACKAGE_NAME}_${MODULE_NAME}_${SUBMODULE_NAME}_${COMPONENT_NAME})
 
-message(STATUS "Configuring ${PROJECT_NAME}...")
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} SOURCE)
 add_library(${PROJECT_NAME} ${SOURCE})
-add_library(${PACKAGE_NAME}::${MODULE_NAME}::${SUBMODULE_NAME} ALIAS ${PROJECT_NAME})
+add_library(${PACKAGE_NAME}::${MODULE_NAME}::${SUBMODULE_NAME}::${COMPONENT_NAME} ALIAS ${PROJECT_NAME})
 set_target_properties(
   ${PROJECT_NAME}
   PROPERTIES
@@ -39,7 +38,8 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
-        platform::storage::storage
+        platform::bsp::startup_result
+        platform::bsp::storage::storage
         idf::nvs_flash
 )
 
@@ -48,6 +48,3 @@ target_compile_options(
   PRIVATE $<$<CXX_COMPILER_ID:CXX,GNU>:$<$<CONFIG:Release>:${GCC_FLAGS_RELEASE}>>
   PRIVATE $<$<CXX_COMPILER_ID:CXX,GNU>:$<$<CONFIG:Debug>:${GCC_FLAGS_DEBUG}>>)
 
-#get_target_property(INCS ${PROJECT_NAME} INCLUDE_DIRECTORIES)
-#message(STATUS "Include dirs for my_target: ${INCS}")
-#target_compile_options(${PROJECT_NAME} PRIVATE -H)

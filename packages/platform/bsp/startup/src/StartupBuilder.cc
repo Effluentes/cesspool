@@ -1,27 +1,31 @@
 #include "platform/bsp/startup/StartupBuilder.hh"
+#include <platform/bsp/storage/nvs/NonVolatileStorage.hh>
 
 namespace platform::bsp
 {
-    StartupResult StartupBuilder::build()
+    StartupResult StartupBuilder::initialize()
     {
-        if(with.nvs)
+        for (auto* storage : registeredStorages_)
         {
-            if (auto r = initializeNvs(); !r.has_value())
+            if (auto r = storage->initialize(); !r.has_value())
             {
-                return std::unexpected(StartupError::NvsInitFailed);
+                return std::unexpected(StartupError::STORAGE_INIT_FAILED);
             }
         }
         return {};
     }
 
-    StartupBuilder& StartupBuilder::withNvs()
+    StartupBuilder& StartupBuilder::withStorage(interface::Storage& storage)
     {
-        with.nvs = true;
+        if (registeredStorages_.size() >= MAX_STORAGES) {
+            // Q_ASSERT(false && "maximum number of storages reached");
+            return *this;
+        }
+        if(registeredStorages_.contains(&storage)) {
+            // Q_ASSERT(false && "storage already registered — check main.cc for duplicates");
+            return *this;
+        }
+        registeredStorages_.insert(&storage);
         return *this;
-    }
-
-    StartupResult StartupBuilder::initializeNvs()
-    {
-        return {};
     }
 }
