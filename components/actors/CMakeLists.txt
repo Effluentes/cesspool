@@ -4,5 +4,5 @@ idf_component_register(SRCS
 					   EMBED_FILES
 					   )
 
-target_link_libraries(${COMPONENT_TARGET} INTERFACE actors::bluetooth)
+# target_link_libraries(${COMPONENT_TARGET} INTERFACE actors::bluetooth)
 message(STATUS "ESP component ${COMPONENT_NAME}")

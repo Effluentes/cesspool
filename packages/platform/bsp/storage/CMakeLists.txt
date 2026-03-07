@@ -1,4 +1,4 @@
-set(MODULE_NAME "storage")
+set(SUBMODULE_NAME "storage")
 
 add_subdirectory(storage)
 add_subdirectory(nvs)

@@ -1,4 +1,4 @@
-set(SUBMODULE_NAME "storage")
+set(SUBMODULE_NAME "startup")
 
 add_subdirectory(src)
 # add_subdirectory_with_tests(tests)

@@ -1,4 +1,12 @@
+//custiom headers
+#include <platform/bsp/startup/StartupBuilder.hh>
+
 extern "C" void app_main() {
-    QP::QF::init();
-    
+   platform::bsp::StartupBuilder startupBuilder;
+    auto startupResult =startupBuilder
+        .withNvs()
+        .build();
+
+    if (not startupResult) {
+    }
 }
