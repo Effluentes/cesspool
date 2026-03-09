@@ -1,7 +1,8 @@
-project(${PACKAGE_NAME}_${MODULE_NAME}_${SUBMODULE_NAME})
+project(${PACKAGE_NAME}_${MODULE_NAME})
 
-add_library(${PROJECT_NAME} INTERFACE)
-add_library(${PACKAGE_NAME}::${MODULE_NAME}::${SUBMODULE_NAME} ALIAS ${PROJECT_NAME})
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} SOURCE)
+add_library(${PROJECT_NAME} ${SOURCE})
+add_library(${PACKAGE_NAME}::${MODULE_NAME} ALIAS ${PROJECT_NAME})
 set_target_properties(
   ${PROJECT_NAME}
   PROPERTIES
@@ -17,6 +18,10 @@ set_target_properties(
              )
 
 target_include_directories(${PROJECT_NAME}
-    INTERFACE
+    PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/../include/
+)
+target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+    qpcpp
 )
