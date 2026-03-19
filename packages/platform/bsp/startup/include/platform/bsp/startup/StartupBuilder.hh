@@ -1,7 +1,8 @@
 #pragma once
 #include "platform/bsp/startup_result/StartupError.hh"
 #include <platform/bsp/storage/storage/interface/Storage.hh>
-#include <flat_set>
+#include <set>
+
 namespace platform::bsp
 {
 class StartupBuilder
@@ -15,6 +16,6 @@ class StartupBuilder
 
     private:
     static constexpr std::size_t MAX_STORAGES = 8U;
-    std::flat_set<interface::Storage*> registeredStorages_;
+    std::set<interface::Storage*> registeredStorages_;
 };
 }
