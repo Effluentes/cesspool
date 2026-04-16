@@ -1,7 +1,16 @@
 message(STATUS "ESP component ${COMPONENT_NAME}")
 
-if(NOT DEFINED QPCPP_DIR OR QPCPP_DIR STREQUAL "")
-    message(FATAL_ERROR "QPCPP_DIR is not set. Ensure FetchContent for qpcpp runs before project().")
+# component_get_requirements runs this file in an early pass where
+# external variables may not be populated yet.
+if(CMAKE_BUILD_EARLY_EXPANSION)
+    idf_component_register(
+        REQUIRES freertos
+    )
+    return()
+endif()
+
+if(NOT DEFINED QPCPP_DIR OR QPCPP_DIR STREQUAL "" OR NOT EXISTS "${QPCPP_DIR}/include")
+    message(FATAL_ERROR "QPCPP_DIR is invalid ('${QPCPP_DIR}'). Verify FetchContent in top-level CMakeLists.txt.")
 endif()
 
 idf_component_register(
