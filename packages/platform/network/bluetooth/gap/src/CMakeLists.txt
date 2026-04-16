@@ -40,7 +40,6 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
     PUBLIC
         platform::storage::storage
-        idf::nvs_flash
 )
 
 target_compile_options(

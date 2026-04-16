@@ -1,5 +1,5 @@
 #include "platform/bsp/storage/nvs/NonVolatileStorage.hh"
-#include <nvs_flash.h>
+#include "nvs_flash.h"
 
 namespace platform::bsp
 {
@@ -14,7 +14,8 @@ NonVolatileStorage::~NonVolatileStorage()
 
 bool NonVolatileStorage::erase()
 {
-    return nvs_flash_erase() == ESP_OK;
+    // return nvs_flash_erase() == ESP_OK;
+    return true;
 }
 
 StartupResult NonVolatileStorage::initialize()

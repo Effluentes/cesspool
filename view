@@ -1,0 +1,454 @@
+@startuml BleQpCppArchitecture
+!theme plain
+skinparam {
+  BackgroundColor        transparent
+  ClassBackgroundColor   #F8F8FF
+  ClassBorderColor       #7F77DD
+  ClassFontStyle         bold
+  ClassFontSize          12
+  ArrowColor             #534AB7
+  ArrowFontSize          10
+  ArrowFontColor         #534AB7
+  PackageBackgroundColor #EEEDFE
+  PackageBorderColor     #AFA9EC
+  NoteBackgroundColor    #FAEEDA
+  NoteBorderColor        #EF9F27
+  Shadowing              false
+  RoundCorner            8
+  DefaultFontName        "Consolas, monospace"
+  DefaultFontSize        12
+  Padding                6
+}
+
+' ════════════════════════════════════════════════════════════════
+' QP/C++ Framework
+' ════════════════════════════════════════════════════════════════
+package "QP/C++ v8.x Framework" <<Frame>> #E6F1FB {
+
+  abstract class QP::QEvt {
+    + sig     : QSignal
+    + refCtr_ : uint8_t
+    + poolId_ : uint8_t
+  }
+
+  abstract class QP::QHsm {
+    # {abstract} initial(e : QEvt const*) : QState
+    # {abstract} top(e : QEvt const*) : QState
+    # {static} tran(target) : QState
+    # {static} super(superstate) : QState
+  }
+
+  abstract class QP::QActive {
+    - m_eQueue   : QEQueue
+    - m_thread   : QP::QSppp
+    --
+    + start(prio, qSto[], qLen, ...) : void
+    + POST(e, sender) : void
+    # PUBLISH(e, sender) : void
+    # SUBSCRIBE(sig : QSignal) : void
+  }
+
+  class QP::QTimeEvt {
+    + armX(nTicks, interval) : void
+    + disarm() : bool
+    + rearm(nTicks) : bool
+  }
+
+  class QP::QF {
+    + {static} init() : void
+    + {static} run() : int
+    + {static} gc(e : QEvt const*) : void
+    + {static} newX_(evtSize, margin, sig) : QEvt*
+  }
+
+  QP::QActive   --|> QP::QHsm
+  QP::QTimeEvt  --o  QP::QActive : fires into
+}
+
+' ════════════════════════════════════════════════════════════════
+' Signals & Events
+' ════════════════════════════════════════════════════════════════
+package "Signals & Events" <<Frame>> #E1F5EE {
+
+  enum Signals <<QSignal>> {
+    Q_USER_SIG
+    BLE_CONNECTED_SIG
+    BLE_DISCONNECTED_SIG
+    GATT_WRITE_SIG
+    GATT_READ_REQ_SIG
+    GATT_NOTIFY_SIG
+    APP_START_SIG
+    APP_TIMEOUT_SIG
+    STORAGE_WRITE_SIG
+    UART_RX_SIG
+    MAX_SIG
+  }
+
+  class BleConnectedEvt {
+    + sig        : QSignal = BLE_CONNECTED_SIG
+    + connHandle : uint16_t
+    + addr       : BleAddr
+    + mtu        : uint16_t
+  }
+
+  class BleDisconnectedEvt {
+    + sig        : QSignal = BLE_DISCONNECTED_SIG
+    + connHandle : uint16_t
+    + reason     : uint8_t
+  }
+
+  class GattWriteEvt {
+    + sig        : QSignal = GATT_WRITE_SIG
+    + connHandle : uint16_t
+    + attrHandle : uint16_t
+    + data       : uint8_t[64]
+    + len        : uint16_t
+  }
+
+  class StorageWriteEvt {
+    + sig   : QSignal = STORAGE_WRITE_SIG
+    + key   : char[32]
+    + value : uint8_t[256]
+    + len   : size_t
+  }
+
+  class UartRxEvt {
+    + sig  : QSignal = UART_RX_SIG
+    + data : uint8_t[128]
+    + len  : uint16_t
+  }
+
+  BleConnectedEvt    --|> QP::QEvt
+  BleDisconnectedEvt --|> QP::QEvt
+  GattWriteEvt       --|> QP::QEvt
+  StorageWriteEvt    --|> QP::QEvt
+  UartRxEvt          --|> QP::QEvt
+}
+
+' ════════════════════════════════════════════════════════════════
+' Ports — granica Clean Architecture
+' ════════════════════════════════════════════════════════════════
+package "Ports — Clean Architecture Boundary" <<Frame>> #FAEEDA {
+
+  interface IBlePort {
+    + {abstract} startAdvertising(cfg : BleAdvCfg const&) : void
+    + {abstract} stopAdvertising() : void
+    + {abstract} disconnect(handle : uint16_t, reason : uint8_t) : void
+    + {abstract} setDeviceName(name : std::string_view) : void
+    + {abstract} getLocalAddr() : BleAddr
+  }
+
+  interface IGattPort {
+    + {abstract} registerService(uuid : BleUuid const&) : ServiceHandle
+    + {abstract} addCharacteristic(svc, uuid, props, perms) : CharHandle
+    + {abstract} notify(conn, ch, data, len) : bool
+    + {abstract} indicate(conn, ch, data, len) : bool
+    + {abstract} setAttrValue(ch, data, len) : void
+  }
+
+  interface IStoragePort {
+    + {abstract} write(key, value, len) : bool
+    + {abstract} read(key, buf, maxLen) : size_t
+    + {abstract} erase(key) : bool
+    + {abstract} eraseAll() : bool
+    + {abstract} contains(key) : bool
+  }
+
+  interface IUartPort {
+    + {abstract} transmit(data : std::span<uint8_t const>) : bool
+    + {abstract} setRxCallback(cb : RxCallback) : void
+    + {abstract} flush() : void
+  }
+}
+
+' ════════════════════════════════════════════════════════════════
+' CRTP HAL — zero-cost abstractions (static polymorphism)
+' ════════════════════════════════════════════════════════════════
+package "CRTP HAL — Zero-cost Abstractions" <<Frame>> #EAF3DE {
+
+  abstract class "HalBase<Derived>" as HalBase {
+    # derived() : Derived&
+    + init() : bool
+    + deinit() : void
+    .. static_cast<Derived*>(this) dispatch ..
+  }
+
+  abstract class "BleHalBase<Derived>" as BleHalBase {
+    + startAdvertising(cfg) : void
+    + stopAdvertising() : void
+    + disconnect(handle) : void
+    .. delegates via CRTP ..
+  }
+
+  abstract class "StorageHalBase<Derived>" as StorageHalBase {
+    + write(key, val, len) : bool
+    + read(key, buf, max) : size_t
+    .. delegates via CRTP ..
+  }
+
+  BleHalBase     --|> HalBase
+  StorageHalBase --|> HalBase
+}
+
+' ════════════════════════════════════════════════════════════════
+' Adapters — implementacje ESP-IDF / NimBLE
+' ════════════════════════════════════════════════════════════════
+package "Adapters — ESP-IDF Implementations" <<Frame>> #FAECE7 {
+
+  class NimBleCallbackBridge {
+    - ao_ : QP::QActive*
+    --
+    + {static} onConnect(desc : ble_gap_conn_desc*) : int
+    + {static} onDisconnect(desc, reason) : int
+    + {static} onGattWrite(conn, attr, ctxt) : int
+    + {static} onGattRead(conn, attr, ctxt) : int
+    --
+    - postFromISR(e : QP::QEvt*) : void
+    ' ISR-safe → QActive::POST_FROM_ISR()
+  }
+
+  class EspNimBleAdapter {
+    - bridge_     : NimBleCallbackBridge
+    - advHandle_  : uint8_t
+    - advRunning_ : bool
+    --
+    + startAdvertising(cfg) : void
+    + stopAdvertising() : void
+    + disconnect(handle, reason) : void
+    + setDeviceName(name) : void
+    + getLocalAddr() : BleAddr
+  }
+
+  class EspNimBleGattAdapter {
+    - svcTable_  : ble_gatt_svc_def[8]
+    - charMap_   : std::array<CharEntry, 16>
+    - registered_ : bool
+    --
+    + registerService(uuid) : ServiceHandle
+    + addCharacteristic(svc, uuid, props, perms) : CharHandle
+    + notify(conn, ch, data, len) : bool
+    + indicate(conn, ch, data, len) : bool
+    + setAttrValue(ch, data, len) : void
+  }
+
+  class NvsStorageAdapter {
+    - nvsHandle_ : nvs_handle_t
+    - ns_        : char[16]
+    --
+    + write(key, value, len) : bool
+    + read(key, buf, maxLen) : size_t
+    + erase(key) : bool
+    + eraseAll() : bool
+    + contains(key) : bool
+  }
+
+  class EspUartAdapter {
+    - uartNum_ : uart_port_t
+    - rxBuf_   : RingBuffer<256>
+    - rxCb_    : RxCallback
+    --
+    + transmit(data) : bool
+    + setRxCallback(cb) : void
+    + flush() : void
+    - rxTask_() : void  ' FreeRTOS task
+  }
+
+  EspNimBleAdapter      ..|> IBlePort
+  EspNimBleAdapter      ..|> BleHalBase
+  EspNimBleGattAdapter  ..|> IGattPort
+  NvsStorageAdapter     ..|> IStoragePort
+  NvsStorageAdapter     ..|> StorageHalBase
+  EspUartAdapter        ..|> IUartPort
+
+  EspNimBleAdapter *-- NimBleCallbackBridge : owns
+}
+
+' ════════════════════════════════════════════════════════════════
+' Active Objects — logika biznesowa (HSM)
+' ════════════════════════════════════════════════════════════════
+package "Active Objects — Business Logic (HSM)" <<Frame>> #EEEDFE {
+
+  class BleManagerAO {
+    .. QP::QActive — prio 3 ..
+    - blePort_    : IBlePort&          ' injected
+    - gattPort_   : IGattPort&         ' injected
+    - retryTimer_ : QP::QTimeEvt
+    - advCfg_     : BleAdvCfg
+    --
+    .. HSM States ..
+    - initial(e) : QState
+    - idle(e) : QState
+    - advertising(e) : QState
+    - connected(e) : QState
+    - disconnecting(e) : QState
+    --
+    .. Handles ..
+    ~ APP_START_SIG → tran(advertising)
+    ~ BLE_CONNECTED_SIG → tran(connected)
+    ~ BLE_DISCONNECTED_SIG → tran(advertising)
+    ~ Q_TIMEOUT_SIG → retry advertising
+    --
+    .. Publishes ..
+    ~ PUBLISH BleConnectedEvt
+    ~ PUBLISH BleDisconnectedEvt
+  }
+
+  class GattServerAO {
+    .. QP::QActive — prio 2 ..
+    - gattPort_ : IGattPort&     ' injected
+    - storage_  : IStoragePort&  ' injected
+    - svcHandle_ : ServiceHandle
+    - charHandles_ : std::array<CharHandle,8>
+    --
+    .. HSM States ..
+    - initial(e) : QState
+    - inactive(e) : QState
+    - active(e) : QState
+    - processing(e) : QState
+    --
+    ~ GATT_WRITE_SIG → dispatch write
+    ~ GATT_READ_REQ_SIG → dispatch read
+    ~ BLE_CONNECTED_SIG → tran(active)
+    ~ BLE_DISCONNECTED_SIG → tran(inactive)
+    --
+    ~ STORAGE_WRITE_SIG → POST to AppAO
+  }
+
+  class AppAO {
+    .. QP::QActive — prio 1 (orchestrator) ..
+    - uart_        : IUartPort&    ' injected
+    - storage_     : IStoragePort& ' injected
+    - initTimer_   : QP::QTimeEvt
+    --
+    .. HSM States ..
+    - initial(e) : QState
+    - starting(e) : QState
+    - running(e) : QState
+    - error(e) : QState
+    --
+    ~ APP_START_SIG → tran(running)
+    ~ UART_RX_SIG → parse & dispatch
+    ~ STORAGE_WRITE_SIG → persist
+    ~ APP_TIMEOUT_SIG → watchdog reset
+  }
+
+  class BleConnectionAO {
+    .. QP::QActive — prio 4 (per-connection) ..
+    - connHandle_   : uint16_t
+    - blePort_      : IBlePort&  ' injected
+    - mtuTimer_     : QP::QTimeEvt
+    --
+    .. HSM States ..
+    - initial(e) : QState
+    - mtuNegotiating(e) : QState
+    - ready(e) : QState
+    - closing(e) : QState
+    --
+    ~ BLE_CONNECTED_SIG → tran(mtuNegotiating)
+    ~ BLE_DISCONNECTED_SIG → tran(closing)
+    ~ Q_TIMEOUT_SIG → force close
+  }
+
+  BleManagerAO   --|> QP::QActive
+  GattServerAO   --|> QP::QActive
+  AppAO          --|> QP::QActive
+  BleConnectionAO --|> QP::QActive
+
+  BleManagerAO   "1" o-- "1" IBlePort    : <<inject>>
+  BleManagerAO   "1" o-- "1" IGattPort   : <<inject>>
+  GattServerAO   "1" o-- "1" IGattPort   : <<inject>>
+  GattServerAO   "1" o-- "1" IStoragePort : <<inject>>
+  AppAO          "1" o-- "1" IUartPort   : <<inject>>
+  AppAO          "1" o-- "1" IStoragePort : <<inject>>
+  BleConnectionAO "1" o-- "1" IBlePort   : <<inject>>
+
+  BleManagerAO   ..> BleConnectedEvt    : PUBLISH >
+  BleManagerAO   ..> BleDisconnectedEvt : PUBLISH >
+  GattServerAO   ..> GattWriteEvt       : handles
+  GattServerAO   ..> StorageWriteEvt    : POST >
+  AppAO          ..> UartRxEvt          : handles
+  BleConnectionAO ..> BleConnectedEvt   : handles
+}
+
+' ════════════════════════════════════════════════════════════════
+' Composition Root
+' ════════════════════════════════════════════════════════════════
+package "Composition Root — main.cpp / app_main()" <<Frame>> #F1EFE8 {
+
+  class CompositionRoot <<(S,#EF9F27)singleton>> {
+    + {static} run() : void
+    --
+    ' ── statyczna alokacja w BSS (.bss) ──
+    - {static} nvsAdapter_    : NvsStorageAdapter
+    - {static} bleAdapter_    : EspNimBleAdapter
+    - {static} gattAdapter_   : EspNimBleGattAdapter
+    - {static} uartAdapter_   : EspUartAdapter
+    - {static} appAO_         : AppAO
+    - {static} bleManagerAO_  : BleManagerAO
+    - {static} gattServerAO_  : GattServerAO
+    - {static} bleConnAO_     : BleConnectionAO
+    --
+    ' ── kolejki eventów (static) ──
+    - {static} appQueue_     : QP::QEvtPtr[32]
+    - {static} bleQueue_     : QP::QEvtPtr[16]
+    - {static} gattQueue_    : QP::QEvtPtr[16]
+    - {static} connQueue_    : QP::QEvtPtr[8]
+    --
+    ' ── wiring (DI w konstruktorach) ──
+    ' bleManagerAO_(bleAdapter_, gattAdapter_)
+    ' gattServerAO_(gattAdapter_, nvsAdapter_)
+    ' appAO_(uartAdapter_, nvsAdapter_)
+    ' bleConnAO_(bleAdapter_)
+  }
+
+  CompositionRoot ..> AppAO            : wires & starts
+  CompositionRoot ..> BleManagerAO     : wires & starts
+  CompositionRoot ..> GattServerAO     : wires & starts
+  CompositionRoot ..> BleConnectionAO  : wires & starts
+  CompositionRoot ..> NvsStorageAdapter : instantiates
+  CompositionRoot ..> EspNimBleAdapter  : instantiates
+  CompositionRoot ..> EspNimBleGattAdapter : instantiates
+  CompositionRoot ..> EspUartAdapter    : instantiates
+  CompositionRoot ..> QP::QF           : QF::init() · QF::run()
+}
+
+' ════════════════════════════════════════════════════════════════
+' Notes
+' ════════════════════════════════════════════════════════════════
+note bottom of CompositionRoot
+  Zero heap allocation.
+  Wszystko w BSS — FreeRTOS heap
+  zostaje dla stosu zadań NimBLE.
+  QF::run() nigdy nie wraca.
+end note
+
+note right of NimBleCallbackBridge
+  NimBLE działa we własnym
+  zadaniu FreeRTOS (task context).
+  postFromISR() bezpiecznie
+  przekracza granicę taskową
+  przez QActive::POST_FROM_ISR().
+end note
+
+note right of BleManagerAO
+  Hierarchia stanów HSM:
+  ──────────────────────
+  top
+  └─ idle
+     ├─ advertising
+     │    └─ (QTimeEvt retry)
+     └─ connected
+          └─ disconnecting
+end note
+
+note right of HalBase
+  template<typename Derived>
+  class BleHalBase : HalBase {
+    void startAdvertising(cfg) {
+      derived().startAdv_impl(cfg);
+    }
+  };
+  Kompilator inlinuje — zero overhead.
+end note
+
+@enduml
