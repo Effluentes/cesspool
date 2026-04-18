@@ -10,9 +10,11 @@
 static const char *TAG = "app";
 
 // Wymagane przez QP (qassert.h): wywoływane przy Q_ASSERT / Q_REQUIRE wewnątrz frameworka.
-extern "C" void Q_onAssert(char const * const module, int const location) {
-    ESP_LOGE("Q_ASSERT", "%s:%d", module != nullptr ? module : "?", location);
-    std::abort();
+extern "C" Q_NORETURN Q_onAssert(char_t const * const module, int_t location)
+{
+    ESP_LOGE(TAG, "Q_onAssert: module:%s loc:%d\n", module, location);
+    while(1);
+
 }
 
 namespace QP {
@@ -67,7 +69,7 @@ extern "C" void app_main() {
         helloQueue,
         Q_DIM(helloQueue),
         nullptr,
-        0U,
+        2048U, //wieksze niz 0, bo w portach FreeRTOS taski muszą mieć stos (w przeciwieństwie do portów na systemy operacyjne, gdzie stos jest współdzielony).
         nullptr);
 
     // Blokuje: pętla dispatch eventów QP (FreeRTOS task wewnątrz portu).
