@@ -1,149 +1,138 @@
 #define BSP_TICKS_PER_SEC 100
+#define Q_EVT_POOL   1
+#define QF_MAX_POOLS 1
+#define QF_EVENT_SIZ sizeof(QP::QEvt)
+#define QF_MAX_TICK_RATE 1
+#define Q_ASSERT 1
 
+#include "qpcpp.hpp"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
 #include "driver/gpio.h"
-#include <cstdlib>
+#include "esp_timer.h"               // <-- DODANE
 
-#include "qpcpp.hpp"
-#include "platform/bsp/storage/nvs/NonVolatileStorage.hh"
-
-static const char *TAG = "app";
-
+static const char * const TAG = "APP";
 #define LED_GPIO GPIO_NUM_19
 
-enum MySignals {
-    TIME_TICK_SIG = QP::Q_USER_SIG,
-};
-
-extern "C" Q_NORETURN Q_onAssert(char_t const * const module, int_t location) {
-    ESP_LOGE(TAG, "Q_onAssert: module:%s loc:%d\n", module, location);
-    while(1);
-}
-
-namespace QP {
-void QF::onStartup() { ESP_LOGI(TAG, "QP::QF::onStartup()"); }
-void QF::onCleanup() { ESP_LOGI(TAG, "QP::QF::onCleanup()"); }
-}
-
-// ---------- BlinkerAO ----------
+// Eventy
 namespace Blinker {
-
-class AO final : public QP::QActive {
-public:
-    AO() : QP::QActive(Q_STATE_CAST(&AO::initial)) {}
-
-private:
-    static QP::QState initial(AO * const me, QP::QEvt const * const) {
-        gpio_reset_pin(LED_GPIO);
-        gpio_set_direction(LED_GPIO, GPIO_MODE_OUTPUT);
-        gpio_set_level(LED_GPIO, 0);
-        return me->tran(Q_STATE_CAST(&AO::blinking));
-    }
-
-    static QP::QState blinking(AO * const me, QP::QEvt const * const e) {
-        switch (e->sig) {
-        case Q_ENTRY_SIG:
-            ESP_LOGI(TAG, "BlinkerAO: gotowy");
-            return Q_HANDLED();
-        case TIME_TICK_SIG: {
-            static bool led_state = false;
-            led_state = !led_state;
-            gpio_set_level(LED_GPIO, led_state ? 1 : 0);
-            ESP_LOGI(TAG, "BlinkerAO: LED %s", led_state ? "ON" : "OFF");
-            return Q_HANDLED();
-        }
-        default:
-            return Q_SUPER(&QP::QHsm::top);
-        }
-    }
-};
-
-AO blinkerAO;
-QP::QEvt const *blinkerQueue[10];
-
-} // namespace Blinker
-
-// ---------- TimerAO ----------
-namespace Timer {
-
-class AO final : public QP::QActive {
-private:
-    QP::QTimeEvt m_timeEvt;
-
-public:
-    AO()
-        : QP::QActive(Q_STATE_CAST(&AO::initial)),
-          m_timeEvt(this, TIME_TICK_SIG, 0U)
-    {}
-
-private:
-    static QP::QState initial(AO * const me, QP::QEvt const * const) {
-        me->m_timeEvt.armX(100U, 100U);   // 500 ms
-        ESP_LOGI(TAG, "TimerAO: timer uzbrojony");
-        return me->tran(Q_STATE_CAST(&AO::running));
-    }
-
-    static QP::QState running(AO * const me, QP::QEvt const * const e) {
-        switch (e->sig) {
-        case Q_ENTRY_SIG:
-            return Q_HANDLED();
-        case TIME_TICK_SIG: {
-            static QP::QEvt const tickEvt = { TIME_TICK_SIG, 0U, 0U };
-            Blinker::blinkerAO.POST(&tickEvt, 0U);
-            return Q_HANDLED();
-        }
-        default:
-            return Q_SUPER(&QP::QHsm::top);
-        }
-    }
-};
-
-AO timerAO;
-QP::QEvt const *timerQueue[5];
-
-} // namespace Timer
-
-// ---------- Zadanie tick ----------
-namespace {
-
-void tickTask(void * /*param*/) {
-    TickType_t lastWake = xTaskGetTickCount();
-    const TickType_t period = pdMS_TO_TICKS(10);
-    while (true) {
-        vTaskDelayUntil(&lastWake, period);
-        QP::QF::tickX_(0U);
-    }
+    enum Signals { TICK_SIG = QP::Q_USER_SIG };
+    struct TickEvt : public QP::QEvt {
+        TickEvt(QP::QSignal sig) : QP::QEvt{ sig, 0U, 0U } {}
+    };
 }
 
-} // namespace
+// BlinkerAO
+namespace Blinker {
+    class AO final : public QP::QActive {
+    public:
+        AO() : QP::QActive(Q_STATE_CAST(&Initial)) {}
+    private:
+        static QP::QState Initial(AO * const me, QP::QEvt const * const e) {
+            switch (e->sig) {
+            case Q_ENTRY_SIG:
+                gpio_reset_pin(LED_GPIO);
+                gpio_set_direction(LED_GPIO, GPIO_MODE_OUTPUT);
+                gpio_set_level(LED_GPIO, 0);
+                ESP_LOGI(TAG, "Blinker: ready");
+                return me->tran(Q_STATE_CAST(&Blinking));
+            default: return Q_SUPER(&QHsm::top);
+            }
+        }
+        static QP::QState Blinking(AO * const me, QP::QEvt const * const e) {
+            switch (e->sig) {
+            case Q_ENTRY_SIG:
+                ESP_LOGI(TAG, "Blinker: waiting for ticks...");
+                return Q_HANDLED();
+            case TICK_SIG: {
+                static bool led_state = false;
+                led_state = !led_state;
+                gpio_set_level(LED_GPIO, led_state);
+                ESP_LOGI(TAG, "Blinker: LED %s", led_state ? "ON" : "OFF");
+                return Q_HANDLED();
+            }
+            default: return Q_SUPER(&QHsm::top);
+            }
+        }
+    };
+    AO BlinkerAO;
+    QP::QEvt const *BlinkerQueue[10];
+}
 
-// ---------- app_main ----------
+// TimerAO
+namespace Timer {
+    class AO final : public QP::QActive {
+    private:
+        QP::QTimeEvt m_timeEvt;
+    public:
+        AO() : QP::QActive(Q_STATE_CAST(&Initial)),
+               m_timeEvt(this, Blinker::TICK_SIG, 0U) {}
+    private:
+        static QP::QState Initial(AO * const me, QP::QEvt const * const e) {
+            switch (e->sig) {
+            case Q_ENTRY_SIG:
+                me->m_timeEvt.armX(50U, 50U);   // 500 ms
+                ESP_LOGI(TAG, "Timer: started");
+                return me->tran(Q_STATE_CAST(&Running));
+            default: return Q_SUPER(&QHsm::top);
+            }
+        }
+        static QP::QState Running(AO * const me, QP::QEvt const * const e) {
+            switch (e->sig) {
+            case Q_ENTRY_SIG: return Q_HANDLED();
+            case Blinker::TICK_SIG: {
+                Blinker::TickEvt *tickEvt = Q_NEW(Blinker::TickEvt, Blinker::TICK_SIG);
+                ESP_LOGI(TAG, "Timer: tick generated");
+                Blinker::BlinkerAO.POST(tickEvt, 0U);
+                return Q_HANDLED();
+            }
+            default: return Q_SUPER(&QHsm::top);
+            }
+        }
+    };
+    AO TimerAO;
+    QP::QEvt const *TimerQueue[5];
+}
+
+// QP callbacks
+extern "C" Q_NORETURN Q_onAssert(char_t const * const module, int_t location) {
+    ESP_LOGE(TAG, "QP ASSERT: module %s, location %d", module, location);
+    while (1);
+}
+namespace QP {
+    void QF::onStartup() { ESP_LOGI(TAG, "QF::onStartup"); }
+    void QF::onCleanup() { ESP_LOGI(TAG, "QF::onCleanup"); }
+}
+
+// ===== Funkcja wywoływana z timera sprzętowego ESP32 =====
+static void qp_tick_callback(void* arg) {
+    QP::QF::tickX_(0U);
+}
+
+// app_main
 extern "C" void app_main() {
-    platform::bsp::NonVolatileStorage storage;
-    if (auto result = storage.initialize(); !result) {
-        ESP_LOGE("app_main", "NVS init failed: %d", static_cast<int>(result.error()));
-    }
-
     QP::QF::init();
 
-    // Uruchom tick QP (wysoki priorytet)
-    static StackType_t tickStack[configMINIMAL_STACK_SIZE];
-    static StaticTask_t tickTaskBuf;
-    xTaskCreateStaticPinnedToCore(
-        tickTask, "qp_tick",
-        configMINIMAL_STACK_SIZE, nullptr,
-        configMAX_PRIORITIES - 1,
-        tickStack, &tickTaskBuf, tskNO_AFFINITY);
+    static QP::QEvt l_poolSto[20];
+    QP::QF::poolInit(l_poolSto, sizeof(l_poolSto), sizeof(QP::QEvt));
 
-    Timer::timerAO.start(1U, Timer::timerQueue,
-                         Q_DIM(Timer::timerQueue),
+    // Start obiektów aktywnych
+    Timer::TimerAO.start(1U, Timer::TimerQueue, Q_DIM(Timer::TimerQueue),
                          nullptr, 2048U, nullptr);
-
-    Blinker::blinkerAO.start(2U, Blinker::blinkerQueue,
-                             Q_DIM(Blinker::blinkerQueue),
+    Blinker::BlinkerAO.start(2U, Blinker::BlinkerQueue, Q_DIM(Blinker::BlinkerQueue),
                              nullptr, 2048U, nullptr);
+
+    // Timer sprzętowy ESP32 – generuje tick co 10 ms
+    const esp_timer_create_args_t timer_args = {
+        .callback = &qp_tick_callback,
+        .arg = nullptr,
+        .dispatch_method = ESP_TIMER_TASK,      // wywoływane w przerwaniu
+        .name = "qp_tick"
+    };
+    esp_timer_handle_t qp_timer;
+    ESP_ERROR_CHECK(esp_timer_create(&timer_args, &qp_timer));
+    ESP_ERROR_CHECK(esp_timer_start_periodic(qp_timer, 10000)); // okres 10 ms
 
     QP::QF::run();
 }

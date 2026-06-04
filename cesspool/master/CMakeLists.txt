@@ -2,4 +2,4 @@ message(STATUS "ESP component ${COMPONENT_NAME}")
 set(SOURCE ./src/main.cc)
 
 idf_component_register(SRCS ${SOURCE}
-                       REQUIRES freertos actors platform esp_driver_gpio)
+                       REQUIRES freertos actors platform esp_driver_gpio esp_timer)
