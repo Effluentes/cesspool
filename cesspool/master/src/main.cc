@@ -85,7 +85,8 @@ extern "C" void app_main() {
     Blinker::instance.start(
         1U,
         Blinker::queue, Q_DIM(Blinker::queue),
-        nullptr, 2048U,
+        nullptr,
+        2048U,
         nullptr
     );
 
