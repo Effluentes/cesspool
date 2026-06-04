@@ -1,5 +1,7 @@
 message(STATUS "ESP component ${COMPONENT_NAME}")
 
 idf_component_register(
-    REQUIRES qpcpp
+    SRCS "src/Blinker.cc"
+    INCLUDE_DIRS "include"
+    REQUIRES qpcpp freertos driver
 )

@@ -20,4 +20,13 @@ set_target_properties(
 target_include_directories(${PROJECT_NAME}
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/../include/
+    SYSTEM3
+        ${QPCPP_DIR}/include
+        ${QPCPP_DIR}/ports/esp-idf
+        
+)
+
+target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+        qpcpp
 )
