@@ -13,6 +13,9 @@ endif()
 
 idf_component_register(
     SRCS
+        # missing q_assert implementation
+        "src/EspIdfPort.cc"
+        # qpcpp sources
         "${QPCPP_DIR}/src/qf/qep_hsm.cpp"
         "${QPCPP_DIR}/src/qf/qep_msm.cpp"
         "${QPCPP_DIR}/src/qf/qf_act.cpp"
@@ -27,6 +30,9 @@ idf_component_register(
         "${QPCPP_DIR}/src/qf/qf_time.cpp"
         "${QPCPP_DIR}/ports/esp-idf/qf_port.cpp"
     INCLUDE_DIRS
+        # missing q_assert implementation
+        "include"
+        # qpcpp headers
         "${QPCPP_DIR}/include"
         "${QPCPP_DIR}/src"
         "${QPCPP_DIR}/ports/esp-idf"
