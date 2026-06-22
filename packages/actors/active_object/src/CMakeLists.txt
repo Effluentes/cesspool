@@ -1,9 +1,8 @@
-project(${PACKAGE_NAME}_${MODULE_NAME}_${SUBMODULE_NAME})
+project(${PACKAGE_NAME}_${MODULE_NAME})
 
 
 add_library(${PROJECT_NAME} INTERFACE)
-add_library(${PACKAGE_NAME}::${MODULE_NAME}::${SUBMODULE_NAME} ALIAS ${PROJECT_NAME})
-message(STATUS "Addtional lib ${PACKAGE_NAME}::${MODULE_NAME}::${SUBMODULE_NAME}")
+add_library(${PACKAGE_NAME}::${MODULE_NAME} ALIAS ${PROJECT_NAME})
 
 set_target_properties(
   ${PROJECT_NAME}
@@ -15,10 +14,9 @@ set_target_properties(
             CXX_STANDARD 23
             CXX_EXTENSIONS OFF
             CXX_STANDARD_REQUIRED ON
-)
+             )
 
 target_include_directories(${PROJECT_NAME}
     INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/../include/
 )
-message(STATUS "Include dir ${CMAKE_CURRENT_SOURCE_DIR}/../include/ for ${PROJECT_NAME}")

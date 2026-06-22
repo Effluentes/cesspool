@@ -1,4 +1,4 @@
-#include "actors/bluetoothManagerAO/BluetoothManagerAO.hh"
+#include "actors/bluetooth_manager_ao/BluetoothManagerAO.hh"
 #include "esp_log.h"
 #include <cstring>
 #include <algorithm>
