@@ -89,3 +89,41 @@ Instead of `virtual` calls in hot paths, the system uses
 **static polymorphism via templates (CRTP)**.
 
 On **ARM Cortex-M**, this can be the difference between **~1 cycle vs. dozens of cycles**.
+
+## Driver Architecture and Naming Conventions
+
+## 1. Ports vs. Adapters (Folder Structure)
+To clearly distinguish between hardware-specific implementations and abstract interfaces, the following naming rules apply:
+
+- **`components/drivers/` (Ports)**:
+  Named using the pattern `{technology}_{chip}` (e.g., `display_ili9341`, `bluetooth_nimble`).
+  These folders contain the **concrete drivers** that are tightly coupled to the specific hardware (MCU peripheral or external chip).
+
+- **`packages/drivers/` (Adapters)**:
+  Named using the abstract technology name only (e.g., `display`, `bluetooth`).
+  These folders contain the **generic abstraction layers** (interfaces, virtual classes, or adapter logic) that the application logic relies upon.
+
+This structure makes it immediately obvious which elements are **ports** (concrete implementations) and which are **adapters** (abstract contracts), simplifying maintenance and hardware porting.
+
+---
+
+## 2. Subcomponents
+If a component requires additional auxiliary logic (e.g., internal state machines, protocol parsers, or helper utilities), it must reside in a **nested subfolder** within its parent component (e.g., `domain/slave/protocol/`).
+
+Such extensions **must not** be promoted to new top-level packages; they remain encapsulated inside the parent directory. This policy enforces high cohesion, keeps the project root clean, and makes dependencies between closely related modules explicit.
+
+---
+
+## 3. CRTP Boundary and Low-Level Hardware Dependencies
+A strict architectural boundary is enforced regarding Curiously Recurring Template Pattern (CRTP) base classes and low-level hardware abstractions:
+
+- Files such as **`SpiBase.hpp`** and **`GpioBase.hpp`** are located in **`components/`**, **not** in `packages/`.
+
+### Rationale
+This decision is made because these base classes either:
+- Directly utilise **ESP-IDF specific types** (e.g., `spi_device_handle_t`, `gpio_num_t`), or
+- Are tightly coupled to the **register-level configuration** or peripheral internals of the target chip.
+
+Consequently, despite being named "Base" or appearing abstract in design, they are **inherently hardware-dependent**. Placing them in `components/` (alongside the concrete ports) rather than in the platform-agnostic `packages/` layer avoids false abstractions and ensures that the adapter layer remains truly portable across different platforms.
+
+### [Example of folder structure](./cesspool_folder_structure.html)

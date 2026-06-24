@@ -1,0 +1,141 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body { font-family: var(--font-mono); font-size: 13px; background: transparent; color: var(--color-text-primary); margin: 0; padding: 12px 16px; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.col-label { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 8px; letter-spacing: 0.04em; text-transform: uppercase; }
+.tree { line-height: 1.75; }
+.d  { color: var(--color-text-primary); font-weight: 500; }
+.f  { color: var(--color-text-secondary); }
+.badge { display: inline-block; font-size: 10px; padding: 1px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; font-family: var(--font-sans); }
+.b-pa   { background: rgba(29,158,117,0.15); color: #1D9E75; border: 1px solid rgba(29,158,117,0.3); }
+.b-crtp { background: rgba(83,74,183,0.15);  color: #8B7FE8; border: 1px solid rgba(83,74,183,0.3); }
+.b-bb   { background: rgba(153,60,29,0.15);  color: #D05538; border: 1px solid rgba(153,60,29,0.3); }
+.b-idf  { background: rgba(100,100,100,0.12); color: var(--color-text-secondary); border: 1px solid var(--color-border-tertiary); }
+.sep { border: none; border-top: 1px solid var(--color-border-tertiary); margin: 14px 0; }
+.note { font-size: 11px; color: var(--color-text-tertiary); margin-top: 14px; font-family: var(--font-sans); line-height: 1.6; }
+.rule { margin-top: 16px; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--color-border-tertiary); font-family: var(--font-sans); font-size: 12px; color: var(--color-text-secondary); line-height: 1.7; }
+.rule strong { color: var(--color-text-primary); font-weight: 500; }
+</style>
+</head>
+<body>
+
+<div class="cols">
+
+<!-- packages/ -->
+<div>
+<div class="col-label">packages/ — pure C++, zero ESP</div>
+<div class="tree">
+<span class="d">packages/</span><br>
+│<br>
+├── <span class="d">drivers/</span> <span class="badge b-pa">P&A ports</span><br>
+│   ├── <span class="d">gpio/</span><br>
+│   │   ├── <span class="f">IGpioDriver.hpp</span><br>
+│   │   └── <span class="f">NullGpioDriver.hpp</span><br>
+│   ├── <span class="d">spi/</span><br>
+│   │   ├── <span class="f">ISpiDriver.hpp</span><br>
+│   │   └── <span class="f">NullSpiDriver.hpp</span><br>
+│   ├── <span class="d">uart/</span><br>
+│   │   └── <span class="f">IUartDriver.hpp</span><br>
+│   ├── <span class="d">bluetooth/</span><br>
+│   │   └── <span class="f">IBluetoothDriver.hpp</span><br>
+│   ├── <span class="d">wifi/</span><br>
+│   │   └── <span class="f">IWifiDriver.hpp</span><br>
+│   ├── <span class="d">display/</span><br>
+│   │   ├── <span class="f">IDisplay.hpp</span><br>
+│   │   └── <span class="f">NullDisplay.hpp</span><br>
+│   └── <span class="d">touch/</span><br>
+│       ├── <span class="f">ITouchDriver.hpp</span><br>
+│       └── <span class="f">NullTouchDriver.hpp</span><br>
+│<br>
+├── <span class="d">actors/</span> <span class="badge b-pa">AO declarations</span><br>
+│   ├── <span class="d">radio/</span><br>
+│   │   ├── <span class="f">BluetoothManagerAO.hpp</span><br>
+│   │   └── <span class="f">WifiManagerAO.hpp</span><br>
+│   ├── <span class="d">ui/</span><br>
+│   │   └── <span class="f">ScreenManagerAO.hpp</span><br>
+│   ├── <span class="d">comm/</span><br>
+│   │   └── <span class="f">SlaveCommAO.hpp</span><br>
+│   └── <span class="d">system/</span> <span class="badge b-bb">Blackboard</span><br>
+│       └── <span class="f">SystemStateAO.hpp</span><br>
+│<br>
+├── <span class="d">events/</span><br>
+│   ├── <span class="f">Signals.hpp</span><br>
+│   ├── <span class="f">WifiCredentialsEvt.hpp</span><br>
+│   ├── <span class="f">TelemetryEvt.hpp</span><br>
+│   └── <span class="f">SystemSnapshotEvt.hpp</span><br>
+│<br>
+└── <span class="d">domain/</span><br>
+    ├── <span class="d">slave/</span><br>
+    │   ├── <span class="f">SlaveState.hpp</span><br>
+    │   └── <span class="d">protocol/</span> <span class="f">← subcomponent</span><br>
+    │       └── <span class="f">SlaveMessage.hpp</span><br>
+    └── <span class="d">system/</span><br>
+        └── <span class="f">SystemState.hpp</span><br>
+</div>
+</div>
+
+<!-- components/ -->
+<div>
+<div class="col-label">components/ — ESP-IDF adapters</div>
+<div class="tree">
+<span class="d">components/</span><br>
+│<br>
+├── <span class="d">drivers/</span><br>
+│   ├── <span class="d">gpio_esp32/</span> <span class="badge b-crtp">CRTP</span><br>
+│   │   ├── <span class="f">GpioBase.hpp</span><br>
+│   │   ├── <span class="f">Esp32GpioDriver.hpp</span><br>
+│   │   └── <span class="f">CMakeLists.txt</span><br>
+│   ├── <span class="d">spi_esp32/</span> <span class="badge b-crtp">CRTP</span><br>
+│   │   ├── <span class="f">SpiBase.hpp</span><br>
+│   │   ├── <span class="f">Esp32SpiDriver.hpp</span><br>
+│   │   └── <span class="f">CMakeLists.txt</span><br>
+│   ├── <span class="d">display_ili9341/</span> <span class="badge b-crtp">CRTP</span><br>
+│   │   ├── <span class="f">Ili9341Driver.hpp</span><br>
+│   │   ├── <span class="f">Ili9341Driver.cc</span><br>
+│   │   └── <span class="f">CMakeLists.txt</span><br>
+│   ├── <span class="d">touch_xpt2046/</span> <span class="badge b-crtp">CRTP</span><br>
+│   │   ├── <span class="f">XPT2046Driver.hpp</span><br>
+│   │   └── <span class="f">CMakeLists.txt</span><br>
+│   ├── <span class="d">bluetooth_nimble/</span> <span class="badge b-idf">virtual</span><br>
+│   │   ├── <span class="f">NimBLEDriver.hpp</span><br>
+│   │   ├── <span class="f">NimBLEDriver.cc</span><br>
+│   │   └── <span class="f">CMakeLists.txt</span><br>
+│   ├── <span class="d">wifi_esp32/</span> <span class="badge b-idf">virtual</span><br>
+│   │   ├── <span class="f">Esp32WifiDriver.hpp</span><br>
+│   │   └── <span class="f">CMakeLists.txt</span><br>
+│   └── <span class="d">credential_nvs/</span> <span class="badge b-idf">virtual</span><br>
+│       ├── <span class="f">NvsCredentialStore.hpp</span><br>
+│       └── <span class="f">CMakeLists.txt</span><br>
+│<br>
+├── <span class="d">actors/</span><br>
+│   ├── <span class="d">radio/</span><br>
+│   │   ├── <span class="f">BluetoothManagerAO.cc</span><br>
+│   │   ├── <span class="f">WifiManagerAO.cc</span><br>
+│   │   └── <span class="f">CMakeLists.txt</span><br>
+│   ├── <span class="d">ui/</span><br>
+│   │   ├── <span class="f">ScreenManagerAO.cc</span><br>
+│   │   └── <span class="f">CMakeLists.txt</span><br>
+│   ├── <span class="d">comm/</span><br>
+│   │   ├── <span class="f">SlaveCommAO.cc</span><br>
+│   │   └── <span class="f">CMakeLists.txt</span><br>
+│   └── <span class="d">system/</span> <span class="badge b-bb">Blackboard</span><br>
+│       ├── <span class="f">SystemStateAO.cc</span><br>
+│       └── <span class="f">CMakeLists.txt</span><br>
+│<br>
+├── <span class="d">dev/</span> <span class="badge b-idf">test helpers</span><br>
+│   ├── <span class="f">DevAutoTrigger.hpp</span><br>
+│   └── <span class="f">CMakeLists.txt</span><br>
+│<br>
+└── <span class="d">composition_root/</span><br>
+    ├── <span class="f">CompositionRoot.hpp</span><br>
+    ├── <span class="f">CompositionRoot.cc</span><br>
+    └── <span class="f">CMakeLists.txt</span><br>
+</div>
+</div>
+
+</div>
+</body>
+</html>
