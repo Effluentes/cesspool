@@ -6,7 +6,5 @@ idf_component_register(
     INCLUDE_DIRS "include"
     REQUIRES qpcpp freertos driver bt nvs_flash
 )
-if(NOT CMAKE_BUILD_EARLY_EXPANSION)
+message(STATUS "ESP testttt ${COMPONENT_TARGET}")
 target_link_libraries(${COMPONENT_TARGET} PUBLIC platform::bsp::startup_result)
-
-endif()

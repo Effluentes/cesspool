@@ -24,6 +24,6 @@ set(EXTRA_COMPONENT_DIRS ${MAIN_DIR} ${CMAKE_SOURCE_DIR}/components)
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 
 
-project(cesspool VERSION 0.1.0)
+project(cesspool)
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/packages)
