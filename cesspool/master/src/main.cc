@@ -1,15 +1,14 @@
 #include "esp_log.h"
-// #include "esp_timer.h"
-// #include "actors/bluetoo/BluetoothManagerAO.hh"
-// #include "esp_nimble_hci.h"
-// #include "platform/bluetooth_nimble_stack_inicializator/BluetoothNimbleStackInicializator.hh"
 #include "app/App.hh"
+#include "qpcpp.hpp"
 
-// namespace QP {
-// static const char* TAG = "QP";
-// void QP::QF::onStartup() { ESP_LOGI("QP", "QF started"); }
-// void QF::onCleanup() {}
-// }
+namespace QP {
+void QF::onStartup() {
+    ESP_LOGI("QP", "QF started");
+}
+
+void QF::onCleanup() {}
+}  // namespace QP
 
 // // ---------------------------------------------------------------------------
 // // Tick z ESP timer taska — QF::tickX_ jest thread-safe w FreeRTOS porcie
