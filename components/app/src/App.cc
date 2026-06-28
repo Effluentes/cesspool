@@ -15,10 +15,8 @@ namespace {
     Esp32GPIODriver s_ledBlue  { GPIO_NUM_5 };
     Esp32GPIODriver s_ledGreen { GPIO_NUM_4 };
 
-    // kolejka AO — tutaj, nie w headerze
     QP::QEvt const* s_btQueue[10];
 
-    // AO — dostaje referencje do GPIO, nie wie że to ESP32
     BluetoothManagerAO s_btAO { s_ledRed, s_ledBlue, s_ledGreen };
     const uint8_t MAX_PUB_SIG = 10;
     const auto subscrSto = new QP::QSubscrList[MAX_PUB_SIG];

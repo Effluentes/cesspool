@@ -20,7 +20,7 @@ FetchContent_Populate(qpcpp)
 set(QPCPP_DIR ${qpcpp_SOURCE_DIR} CACHE INTERNAL "Path to fetched qpcpp")
 message(STATUS "QPCPP_DIR: ${QPCPP_DIR}")
 
-set(EXTRA_COMPONENT_DIRS ${MAIN_DIR} ${CMAKE_SOURCE_DIR}/components)
+set(EXTRA_COMPONENT_DIRS ${MAIN_DIR} ${CMAKE_SOURCE_DIR}/third_party ${CMAKE_SOURCE_DIR}/components)
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 
 

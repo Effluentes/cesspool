@@ -9,9 +9,6 @@ Q_DEFINE_THIS_FILE
 
 static const char* TAG = "BluetoothManagerAO";
 
-// ── helpers ──────────────────────────────────────────────────────
-
-// wszystkie trzy LED off
 static void ledsOff(
     platform::driver::interface::GPIO& r,
     platform::driver::interface::GPIO& b,
@@ -21,8 +18,6 @@ static void ledsOff(
     b.setPinLow();
     g.setPinLow();
 }
-
-// ── konstruktor ───────────────────────────────────────────────────
 
 BluetoothManagerAO::BluetoothManagerAO(
     platform::driver::interface::GPIO& ledRed,
@@ -76,7 +71,7 @@ Q_STATE_DEF(BluetoothManagerAO, enabled)
     switch (e->sig) {
 
     case Q_INIT_SIG:
-        return tran(&advertising);  // domyślny pod-stan
+        return tran(&advertising);
 
     case Q_ENTRY_SIG:
         ESP_LOGI(TAG, "enabled ENTRY");
@@ -102,7 +97,7 @@ Q_STATE_DEF(BluetoothManagerAO, advertising)
 
     case Q_ENTRY_SIG:
         ledsOff(m_ledRed, m_ledBlue, m_ledGreen);
-        m_ledBlue.setPinHigh();  // niebieski = reklama BLE
+        m_ledBlue.setPinHigh();
         ESP_LOGI(TAG, "advertising ENTRY");
         ble_start();
         return Q_HANDLED();
@@ -127,7 +122,7 @@ Q_STATE_DEF(BluetoothManagerAO, connected)
 
     case Q_ENTRY_SIG:
         ledsOff(m_ledRed, m_ledBlue, m_ledGreen);
-        m_ledGreen.setPinHigh(); // zielony = połączono
+        m_ledGreen.setPinHigh();
         ESP_LOGI(TAG, "connected ENTRY");
         return Q_HANDLED();
 
@@ -158,8 +153,6 @@ int BluetoothManagerAO::gap_event_cb(struct ble_gap_event* event, void* arg)
 
 void BluetoothManagerAO::ble_start()
 {
-    // The NimBLE controller/host stack is initialized once in the app startup path.
-    // Re-initializing it here causes the controller init to fail with ESP_ERR_INVALID_STATE.
     int name_rc = ble_svc_gap_device_name_set("ESP32-Provision");
     if (name_rc != 0) {
         ESP_LOGE(TAG, "ble_svc_gap_device_name_set failed: %d", name_rc);
@@ -172,12 +165,10 @@ void BluetoothManagerAO::ble_start()
     const char *device_name = "ESP32_NIMBLE";
     struct ble_hs_adv_fields fields;
     memset(&fields, 0, sizeof(fields));
-    // 2. KONFIGURACJA PAKIETU ROZGŁOSZENIOWEGO (ADVERTISING DATA)
     fields.flags = BLE_HS_ADV_F_DISC_GEN | BLE_HS_ADV_F_BREDR_UNSUP;
-    // Dołączamy ustawioną nazwę do pakietu widocznego dla telefonu
     fields.name = (uint8_t *)device_name;
     fields.name_len = strlen(device_name);
-    fields.name_is_complete = 1; // Nazwa jest kompletna (nieucięta)
+    fields.name_is_complete = 1;
     int rc = ble_gap_adv_set_fields(&fields);
     if (rc != 0) {
         ESP_LOGE(TAG, "Błąd ustawiania pól rozgłoszeniowych: %d", rc);
