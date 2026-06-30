@@ -1,5 +1,4 @@
 #include "app/App.hh"
-#include <actors/radio_ao/RadioAO.hh>
 #include <limits>
 #include <platform_driver_esp32/GPIO.hh>
 #include <bluetooth_manager_ao/BluetoothManagerAO.hh>

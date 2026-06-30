@@ -6,14 +6,7 @@
 
 #include <cstdint>
 
-enum BluetoothSignals : QP::QSignal {
-    BT_START_SIG = QP::Q_USER_SIG,
-    BT_STOP_SIG,
-    BT_CONNECTED_SIG,
-    BT_DISCONNECTED_SIG,
-    BT_DATA_SIG,
-    WIFI_CREDENTIALS_SIG,
-};
+#include <qpcpp/EspIdfPort.hh>
 
 struct BtDataEvt : QP::QEvt {
     char data[128];
