@@ -1,0 +1,21 @@
+#pragma once
+#include "qpcpp.hpp"
+
+enum Signals : QP::QSignal
+{
+    SYSTEM_SNAPSHOT_SIG = QP::Q_USER_SIG,
+    BT_START_SIG,
+    BT_STOP_SIG,
+    BT_CONNECTED_SIG,
+    BT_DISCONNECTED_SIG,
+    BT_DATA_SIG,
+    WIFI_CREDENTIALS_SIG,
+    RADIO_INIT_SIG,
+    RADIO_DATA_RX_SIG,
+    RADIO_SEND_SIG,
+    RADIO_TX_TIMEOUT_SIG,
+    SENSOR_DATA_SIG,
+    ENCODER_NAV_SIG,
+
+    MAX_PUB_SIG
+};

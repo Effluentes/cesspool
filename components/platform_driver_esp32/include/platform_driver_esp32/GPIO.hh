@@ -1,6 +1,6 @@
 #pragma once
-#include "platform/driver/gpio/interface/GPIO.hh"
-#include "platform/driver/gpio/interface/GPIOBase.hh"
+#include <platform/driver/gpio/interface/GPIO.hh>
+#include <platform/driver/gpio/interface/GPIOBase.hh>
 #include <driver/gpio.h>
 
 // note: Kluczowe pytanie: czy masz gdzieś w projekcie miejsce gdzie wołasz GPIO przez CRTP bezpośrednio (nie przez GPIO& interfejs)?
