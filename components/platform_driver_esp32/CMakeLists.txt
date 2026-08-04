@@ -13,6 +13,11 @@ idf_component_register(
     REQUIRES
         esp_driver_gpio
         qpcpp
+        u8g2
 )
 
-target_link_libraries(${COMPONENT_TARGET} PUBLIC platform::driver::gpio platform::driver::i2c)
+target_link_libraries(${COMPONENT_TARGET}
+    PUBLIC
+    platform::driver::gpio
+    platform::driver::i2c
+    platform::driver::display)

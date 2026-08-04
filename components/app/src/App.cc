@@ -21,11 +21,12 @@ namespace
     Esp32GPIODriver ledRed{GPIO_NUM_3};
     Esp32GPIODriver ledBlue{GPIO_NUM_5};
     Esp32GPIODriver ledGreen{GPIO_NUM_4};
-    Esp32GPIODriver tra(GPIO_NUM_6);
-    Esp32GPIODriver trb(GPIO_NUM_7);
-    Esp32I2CWires i2cWires{tra, trb};
-    Esp32I2CDriver i2c{i2cWires};
-    Sh1106Driver oled{i2c};
+
+    Esp32GPIODriver sdaForScreen(GPIO_NUM_6);
+    Esp32GPIODriver sclForScreen(GPIO_NUM_7);
+    Esp32I2CWires i2cWiresForScreen{sdaForScreen, sclForScreen};
+    Esp32I2CDriver i2cForScreen{i2cWiresForScreen};
+    Sh1106Driver oled{i2cForScreen};
 
     EncoderDriver encoder{GPIO_NUM_8, GPIO_NUM_9, GPIO_NUM_18};
 
