@@ -1,0 +1,7 @@
+set(NODE_TYPE master)
+option(BUILD_MASTER_NODE "Build the master node" ON)
+if(NOT BUILD_MASTER_NODE)
+  set(NODE_TYPE slave)
+endif()
+set(MAIN_DIR ${CMAKE_SOURCE_DIR}/cesspool/${NODE_TYPE})
+message(STATUS "building for: ${MAIN_DIR}")
