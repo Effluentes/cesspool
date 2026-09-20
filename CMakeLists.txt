@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
-project(cesspool)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-include(composite_root)
 
 include(FetchContent)
 
@@ -18,7 +16,8 @@ message(STATUS "QPCPP_DIR: ${QPCPP_DIR}")
 
 # todo(miekicki): change to real checking a platform and choose a right port for board/plaform
 set(ESP_32 TRUE)
-if(ESP_32)
+if(${ESP_32})
+  include(composite_root)
   set(EXTRA_COMPONENT_DIRS
       ${MAIN_DIR}
       ${CMAKE_SOURCE_DIR}/runtime/active_objects
@@ -26,8 +25,9 @@ if(ESP_32)
       ${CMAKE_SOURCE_DIR}/platform/esp32/components
   )
   include($ENV{IDF_PATH}/tools/cmake/project.cmake)
+  project(cesspool)
+  add_subdirectory(${CMAKE_SOURCE_DIR}/packages)
 else()
   message(FATAL_ERROR "This project is intended to be built for ESP32 only. Please set ESP_32 to true.")
 endif()
 
-add_subdirectory(${CMAKE_SOURCE_DIR}/packages)

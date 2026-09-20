@@ -1,4 +1,4 @@
-project(${PACKAGE_NAME}_${MODULE_NAME}_${SUBMODULE_NAME}_${COMPONENT_NAME})
+
 
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} SOURCE)
 add_library(${PROJECT_NAME} ${SOURCE})
