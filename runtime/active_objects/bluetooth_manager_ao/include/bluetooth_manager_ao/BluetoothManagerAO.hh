@@ -1,9 +1,9 @@
 #pragma once
 
 #include "qpcpp.hpp"
-#include <qpcpp/EspIdfPort.hh>
 #include <qpcpp/Signals.hh>
 #include "platform/driver/gpio/interface/GPIO.hh"
+#include "runtime/ports/BluetoothPort.hh"
 #include <cstdint>
 
 struct BtDataEvt : QP::QEvt
@@ -24,7 +24,8 @@ public:
     BluetoothManagerAO(
         platform::driver::interface::GPIO &ledRed,
         platform::driver::interface::GPIO &ledBlue,
-        platform::driver::interface::GPIO &ledGreen);
+        platform::driver::interface::GPIO &ledGreen,
+        runtime::ports::BluetoothPort &bluetooth);
 
 protected:
     Q_STATE_DECL(initial);
@@ -34,18 +35,17 @@ protected:
     Q_STATE_DECL(connected);
 
 private:
-    void ble_start();
-    void ble_stop();
-    void ble_cleanup();
     void handle_json(const char *data);
-
-    // GAP callback — wołany z kontekstu NimBLE, nie AO
-    void on_gap_event(struct ble_gap_event *event);
-    static int gap_event_cb(struct ble_gap_event *event, void *arg);
+    static void on_port_event(
+        void *context,
+        runtime::ports::BluetoothPort::Event event,
+        char const *data);
+    void handle_port_event(
+        runtime::ports::BluetoothPort::Event event,
+        char const *data);
 
     platform::driver::interface::GPIO &m_ledRed;
     platform::driver::interface::GPIO &m_ledBlue;
     platform::driver::interface::GPIO &m_ledGreen;
-
-    uint16_t m_connHandle = 0;
+    runtime::ports::BluetoothPort &m_bluetooth;
 };

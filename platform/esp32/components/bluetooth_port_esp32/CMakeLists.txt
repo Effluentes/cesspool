@@ -1,0 +1,10 @@
+idf_component_register(
+    SRCS
+        "src/Esp32BluetoothPort.cc"
+    INCLUDE_DIRS
+        "include"
+        "${CMAKE_SOURCE_DIR}/packages/domain/include"
+        "${CMAKE_SOURCE_DIR}/packages/ports/include"
+    REQUIRES
+        bt
+)

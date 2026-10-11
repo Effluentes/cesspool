@@ -1,8 +1,3 @@
 #pragma once
 
-class App
-{
-public:
-    App();
-    void run();
-};
+#include "composite_root/App.hh"

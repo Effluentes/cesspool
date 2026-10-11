@@ -39,7 +39,5 @@ idf_component_register(
         REQUIRES freertos
     )
 
-    target_compile_options(${COMPONENT_LIB} PRIVATE -Wno-error=volatile)
-
-    # Create public qpcpp target for other components
+    target_compile_options(${COMPONENT_LIB} PRIVATE -w)
 

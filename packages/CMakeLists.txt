@@ -1,3 +1,5 @@
 message(STATUS "Cesspool packages")
 add_subdirectory(domain)
+add_subdirectory(events)
+add_subdirectory(ports)
 add_subdirectory(platform)

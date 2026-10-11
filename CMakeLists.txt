@@ -20,7 +20,6 @@ set(ESP_32 TRUE)
 if(ESP_32)
   set(EXTRA_COMPONENT_DIRS
       ${MAIN_DIR}
-      ${CMAKE_SOURCE_DIR}/runtime/active_objects
       ${CMAKE_SOURCE_DIR}/platform/esp32/third_party
       ${CMAKE_SOURCE_DIR}/platform/esp32/components
   )

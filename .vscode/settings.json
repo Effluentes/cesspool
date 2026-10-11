@@ -1,4 +1,6 @@
 {
-    "idf.portWin": "COM4",
-    "idf.currentSetup": "/opt/esp/idf"
+  "idf.portWin": "COM3",
+  "idf.currentSetup": "/opt/esp/idf",
+  "idf.flashType": "UART",
+  "idf.customExtraVars": {}
 }
