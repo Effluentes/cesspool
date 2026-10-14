@@ -1,3 +1,48 @@
+runtime/
+├── CMakeLists.txt
+│
+├── core/
+│   ├── CMakeLists.txt
+│   ├── include/
+│   └── src/
+│
+├── actors/
+│   ├── CMakeLists.txt
+│   │
+│   ├── system/
+│   │   ├── CMakeLists.txt
+│   │   ├── include/
+│   │   │   └── runtime/actors/system/
+│   │   └── src/
+│   │       └── SystemAO.cpp
+│   │
+│   ├── startup/
+│   │   ├── CMakeLists.txt
+│   │   ├── include/
+│   │   └── src/
+│   │
+│   └── watchdog/
+│       ├── CMakeLists.txt
+│       ├── include/
+│       └── src/
+│
+├── event/
+│   ├── CMakeLists.txt
+│   ├── include/
+│   └── src/
+│
+├── timer/
+│   ├── CMakeLists.txt
+│   ├── include/
+│   └── src/
+│
+└── adapters/
+    └── qpcpp/
+        ├── CMakeLists.txt
+        ├── include/
+        └── src/
+
+
 # cesspool
 IoT part of project
 

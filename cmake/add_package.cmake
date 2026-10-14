@@ -1,0 +1,5 @@
+function(add_package)
+    get_filename_component(PACKAGE_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+    message(STATUS "Adding package: ${PACKAGE_NAME}")
+    set(PACKAGE_NAME ${PACKAGE_NAME} PARENT_SCOPE)
+endfunction()
