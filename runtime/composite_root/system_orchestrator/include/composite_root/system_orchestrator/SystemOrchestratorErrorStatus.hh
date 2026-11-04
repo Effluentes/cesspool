@@ -1,6 +1,6 @@
 #pragma once
 
-namespace composite_root
+namespace runtime::composite_root
 {
     enum class SystemOrchestratorErrorStatus
     {

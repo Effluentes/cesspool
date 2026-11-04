@@ -2,7 +2,7 @@
 #include <expected>
 #include "composite_root/system_orchestrator/SystemOrchestratorErrorStatus.hh"
 
-namespace composite_root
+namespace runtime::composite_root
 {
     class SystemOrchestrator
     {
