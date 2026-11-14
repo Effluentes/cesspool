@@ -1,56 +1,40 @@
 #pragma once
 
 #include <cstdint>
-#include "qpcpp.hpp"
-
-// #include "Signals.hh"
+#include <qpcpp.hpp>
+#include <runtime/actors/common/Events.hh>
+#include <configuration/configuration_loader/ConfigurationLoader.hh>
 
 namespace runtime::actors
 {
-    enum Signals : QP::QSignal
-    {
-
-        PLATFORM_READY_SIG = QP::Q_USER_SIG,
-        RADIO_READY_SIG,
-
-        SERVER_CONNECTED_SIG,
-        SERVER_DISCONNECTED_SIG,
-
-        ALL_SLAVES_AVAILABLE_SIG,
-        SLAVE_UNAVAILABLE_SIG,
-
-        STARTUP_TIMEOUT_SIG,
-        SYSTEM_RESTART_REQUEST_SIG,
-
-        // ALWAYS LAST
-        MAX_SIG
-    };
     class SystemAO final : public QP::QActive
     {
     public:
-        SystemAO() noexcept;
+        SystemAO(const ConfigurationLoader &config) noexcept;
 
         SystemAO(SystemAO const &) = delete;
         SystemAO &operator=(SystemAO const &) = delete;
 
     private:
         Q_STATE_DECL(initial);
-        Q_STATE_DECL(starting);
+        /**
+         * @fn boot
+         * @brief boot state of the system actor. This state is responsible for initializing the system and transitioning to the operational state.
+         */
+        Q_STATE_DECL(boot);
+        /**
+         * @fn operational
+         * @brief operational state of the system actor. This state is responsible for managing the system's operation and handling events while the system is running.
+         */
         Q_STATE_DECL(operational);
-        Q_STATE_DECL(fully_operational);
-        Q_STATE_DECL(degraded);
-        Q_STATE_DECL(fault);
 
-        bool platformReady_{false};
-        bool radioReady_{false};
-        bool serverConnected_{false};
-        bool allSlavesAvailable_{false};
+        const ConfigurationLoader &config_;
 
         QP::QTimeEvt startupTimer_;
     };
     struct LargestEvt : public QP::QEvt
     {
-        LargestEvt() : QP::QEvt{static_cast<QP::QSignal>(Signals::MAX_SIG), 0, 0} {}
+        LargestEvt() : QP::QEvt{static_cast<QP::QSignal>(Events::MAX_SIG), 0, 0} {}
     };
 
 } // namespace runtime::actors
