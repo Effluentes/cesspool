@@ -14,7 +14,7 @@ namespace runtime::composite_root
 
     private:
         SystemOrchestrator &orchestrator_;
-        std::array<QP::QSubscrList, runtime::actors::Events::MAX_SIG> subscrSto_;
+        std::array<QP::QSubscrList, runtime::actors::MAX_SIG> subscrSto_;
         alignas(void *) std::array<runtime::actors::LargestEvt, 20> poolSto_;
     };
 }

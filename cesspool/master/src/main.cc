@@ -5,7 +5,7 @@
 extern "C" void app_main()
 {
     printf("Starting Cesspool application...\n");
-    runtime::composite_root::SystemOrchestrator orchestrator;
-    runtime::composite_root::App app(orchestrator);
+    static runtime::composite_root::SystemOrchestrator orchestrator;
+    static runtime::composite_root::App app(orchestrator);
     app.run();
 }

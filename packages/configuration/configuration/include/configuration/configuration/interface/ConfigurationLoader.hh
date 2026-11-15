@@ -6,7 +6,7 @@ namespace configuration::interface
 {
     enum class ConfigurationLoaderError
     {
-        FILE_NOT_FOUND,
+        CONFIGURATION_NOT_FOUND,
         INVALID_FORMAT,
         UNKNOWN_ERROR
     };

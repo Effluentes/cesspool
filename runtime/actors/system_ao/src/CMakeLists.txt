@@ -15,7 +15,7 @@ set_target_properties(
 
 target_include_directories(${NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include/)
 
-target_link_libraries(${NAME} PUBLIC actors::common qpcpp)
+target_link_libraries(${NAME} PUBLIC actors::display_ao actors::common qpcpp)
 
 target_compile_options(
   ${NAME}

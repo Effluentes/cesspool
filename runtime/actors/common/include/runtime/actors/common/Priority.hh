@@ -10,6 +10,7 @@ namespace runtime::actors
     {
         RESERVE_PRIORITY = 0,
         SYSTEM_AO_PRIORITY,
-        NETWORK_AO_PRIORITY
+        NETWORK_AO_PRIORITY,
+        DISPLAY_AO_PRIORITY
     };
 }

@@ -4,10 +4,11 @@
 
 namespace runtime::actors
 {
-    enum Events : QP::QSignal
+    enum Signals : QP::QSignal
     {
         PLATFORM_READY_SIG = QP::Q_USER_SIG,
         RADIO_READY_SIG,
+        DISPLAY_SHOW_SPLASH_SIG,
 
         SERVER_CONNECTED_SIG,
         SERVER_DISCONNECTED_SIG,

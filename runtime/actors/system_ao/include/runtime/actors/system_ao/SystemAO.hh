@@ -2,15 +2,15 @@
 
 #include <cstdint>
 #include <qpcpp.hpp>
-#include <runtime/actors/common/Events.hh>
-#include <configuration/configuration_loader/ConfigurationLoader.hh>
+#include <runtime/actors/common/Signals.hh>
+#include <runtime/actors/display_ao/DisplayAO.hh>
 
 namespace runtime::actors
 {
     class SystemAO final : public QP::QActive
     {
     public:
-        SystemAO(const ConfigurationLoader &config) noexcept;
+        explicit SystemAO(DisplayAO &displayAO) noexcept;
 
         SystemAO(SystemAO const &) = delete;
         SystemAO &operator=(SystemAO const &) = delete;
@@ -28,13 +28,12 @@ namespace runtime::actors
          */
         Q_STATE_DECL(operational);
 
-        const ConfigurationLoader &config_;
-
+        DisplayAO &displayAO_;
         QP::QTimeEvt startupTimer_;
     };
     struct LargestEvt : public QP::QEvt
     {
-        LargestEvt() : QP::QEvt{static_cast<QP::QSignal>(Events::MAX_SIG), 0, 0} {}
+        LargestEvt() : QP::QEvt{static_cast<QP::QSignal>(MAX_SIG), 0, 0} {}
     };
 
 } // namespace runtime::actors

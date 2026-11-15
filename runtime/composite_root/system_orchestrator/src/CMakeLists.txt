@@ -15,12 +15,7 @@ set_target_properties(
 
 target_include_directories(${NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include/)
 
-target_link_libraries(
-  ${NAME}
-  PRIVATE
-  actors::system_ao
-  actors::common
-)
+target_link_libraries(${NAME} PRIVATE actors::system_ao actors::common)
 
 target_compile_options(
   ${NAME}

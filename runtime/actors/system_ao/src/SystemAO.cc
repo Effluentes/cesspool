@@ -4,9 +4,9 @@
 
 namespace runtime::actors
 {
-    SystemAO::SystemAO(const ConfigurationLoader &config) noexcept
-        : QP::QActive(Q_STATE_CAST(&SystemAO::initial)), startupTimer_(this, Events::STARTUP_TIMEOUT_SIG),
-            config_(config)
+    SystemAO::SystemAO(DisplayAO &displayAO) noexcept
+        : QP::QActive(Q_STATE_CAST(&SystemAO::initial)), displayAO_(displayAO),
+          startupTimer_(this, STARTUP_TIMEOUT_SIG)
     {
     }
 
@@ -24,6 +24,8 @@ namespace runtime::actors
         case Q_ENTRY_SIG:
         {
             std::printf("[SystemAO] State: BOOT\n");
+            static QP::QEvt const showSplashEvent{DISPLAY_SHOW_SPLASH_SIG, 0, 0};
+            displayAO_.POST(&showSplashEvent, this);
             status = Q_HANDLED();
             break;
         }
@@ -41,11 +43,11 @@ namespace runtime::actors
         }
         default:
         {
-            // status = super(&SystemAO::rodzic); // dla stanu najwyższego: super(&top)
+            status = super(&QP::QHsm::top);
             break;
         }
         }
-        return Q_HANDLED();
+        return status;
     }
 
     Q_STATE_DEF(SystemAO, operational)
@@ -55,7 +57,6 @@ namespace runtime::actors
         {
         case Q_ENTRY_SIG:
         {
-
             std::printf("[SystemAO] State: OPERATIONAL\n");
             status = Q_HANDLED();
             break;
@@ -74,11 +75,11 @@ namespace runtime::actors
         }
         default:
         {
-            // status = super(&SystemAO::rodzic); // dla stanu najwyższego: super(&top)
+            status = super(&QP::QHsm::top);
             break;
         }
         }
-        return Q_HANDLED();
+        return status;
     }
 
     // // =========================================================

@@ -2,6 +2,7 @@
 #include <expected>
 #include <runtime/composite_root/system_orchestrator/SystemOrchestratorErrorStatus.hh>
 #include <runtime/actors/system_ao/SystemAO.hh>
+#include <runtime/actors/display_ao/DisplayAO.hh>
 #include <array>
 #include <utility>
 #include <runtime/actors/common/Priority.hh>
@@ -15,7 +16,7 @@ namespace runtime::composite_root
         std::expected<void, SystemOrchestratorErrorStatus> orchestrate();
 
     private:
-        template <typename T, actors::ActiveObjectPriority priority>
+        template <typename ActiveObjectType, actors::ActiveObjectPriority priority>
         struct ActiveObject
         {
             using EventQueue = std::array<QP::QEvt const *, 10>;
@@ -27,7 +28,7 @@ namespace runtime::composite_root
             {
             }
 
-            T ao;
+            ActiveObjectType ao;
             EventQueue eventQueue;
             void post(QP::QEvt const &event)
             {
@@ -37,16 +38,8 @@ namespace runtime::composite_root
             void start()
             {
                 static const auto parameters = nullptr;
-
                 auto **queue_ptr = const_cast<QP::QEvt const **>(eventQueue.data());
                 auto queue_size = static_cast<std::uint_fast16_t>(eventQueue.size());
-
-                printf("[DEBUG] Próba uruchomienia AO:\n");
-                printf("  -> Priorytet (prio): %u\n", static_cast<unsigned>(priority));
-                printf("  -> Rozmiar kolejki (qLen): %u\n", static_cast<unsigned>(queue_size));
-                printf("  -> Rozmiar stosu taska (stkSize): %u bajtów\n",
-                       static_cast<unsigned>(taskStackSizeBytes));
-
                 ao.start(
                     static_cast<std::uint_fast8_t>(priority),
                     queue_ptr,
@@ -54,10 +47,9 @@ namespace runtime::composite_root
                     nullptr,
                     taskStackSizeBytes,
                     parameters);
-
-                printf("Active object started with priority %u\n", static_cast<unsigned>(priority));
             }
         };
+        ActiveObject<actors::DisplayAO, actors::ActiveObjectPriority::DISPLAY_AO_PRIORITY> displayAO_;
         ActiveObject<actors::SystemAO, actors::ActiveObjectPriority::SYSTEM_AO_PRIORITY> systemAO_;
     };
 }

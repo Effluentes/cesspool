@@ -1,5 +1,5 @@
 function(add_module module_name)
-  set(MODULE_NAME ${module_name} )
+  set(MODULE_NAME ${module_name})
   add_subdirectory(${MODULE_NAME})
   message(STATUS "Adding module: ${MODULE_NAME}")
 endfunction()
