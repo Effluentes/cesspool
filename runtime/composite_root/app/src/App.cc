@@ -35,7 +35,9 @@ namespace runtime::composite_root
         auto result = orchestrator_.orchestrate();
         if (!result)
         {
-            // log_.fatal("orchestrate failed err={}", static_cast<std::uint32_t>(result.error()));
+            std::printf(
+                "[App] System orchestration failed with error %u\n",
+                static_cast<unsigned>(result.error()));
         }
         // QP::QF::onStartup();
         QP::QF::run();

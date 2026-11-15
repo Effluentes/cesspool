@@ -16,5 +16,5 @@ namespace configuration::interface
         virtual ~ConfigurationLoader() = default;
 
         virtual std::expected<configuration::Configuration, ConfigurationLoaderError> loadConfiguration() = 0;
-    }
+    };
 }

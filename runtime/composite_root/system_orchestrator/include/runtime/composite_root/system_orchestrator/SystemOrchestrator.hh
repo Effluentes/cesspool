@@ -6,13 +6,17 @@
 #include <array>
 #include <utility>
 #include <runtime/actors/common/Priority.hh>
+#include <configuration/configuration/interface/ConfigurationLoader.hh>
+#include <esp32/human_machine_interface/controls/Controls.hh>
 
 namespace runtime::composite_root
 {
     class SystemOrchestrator
     {
     public:
-        SystemOrchestrator();
+        explicit SystemOrchestrator(
+            configuration::interface::ConfigurationLoader &configurationLoader,
+            human_machine_interface::display::interface::Display &display);
         std::expected<void, SystemOrchestratorErrorStatus> orchestrate();
 
     private:
@@ -51,5 +55,6 @@ namespace runtime::composite_root
         };
         ActiveObject<actors::DisplayAO, actors::ActiveObjectPriority::DISPLAY_AO_PRIORITY> displayAO_;
         ActiveObject<actors::SystemAO, actors::ActiveObjectPriority::SYSTEM_AO_PRIORITY> systemAO_;
+        esp32::human_machine_interface::controls::Controls controls_;
     };
 }
