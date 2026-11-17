@@ -4,7 +4,7 @@
     "editor": "wokwi",
     "parts": [
         {
-            "type": "board-esp32-devkit-c-v4",
+            "type": "board-esp32-c3-devkitm-1",
             "id": "esp",
             "top": 0,
             "left": 0,
@@ -80,7 +80,7 @@
         ],
         [
             "oled1:SCL",
-            "esp:22",
+            "esp:5",
             "blue",
             [
                 "v-32",
@@ -90,7 +90,7 @@
         ],
         [
             "oled1:SDA",
-            "esp:21",
+            "esp:4",
             "green",
             [
                 "v-40",
@@ -160,7 +160,7 @@
         ],
         [
             "btn1:1.r",
-            "esp:26",
+            "esp:6",
             "green",
             [
                 "h20",
@@ -180,7 +180,7 @@
         ],
         [
             "btn2:1.r",
-            "esp:27",
+            "esp:7",
             "blue",
             [
                 "h20",

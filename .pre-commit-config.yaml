@@ -1,0 +1,27 @@
+exclude: ^managed_components/
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+        exclude: ^(\.devcontainer/|\.gitignore$|\.vscode/settings\.json$|CODE_OF_CONDUCT$|LICENSE$|README\.md$|docs/view$|managed_components/)
+      - id: check-yaml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+  - repo: local
+    hooks:
+      - id: clang-format-application
+        name: clang-format application code
+        entry: clang-format-18 --dry-run --Werror
+        language: system
+        types: [c++]
+        files: ^runtime/application/
+      - id: clang-tidy-application
+        name: clang-tidy application core
+        entry: clang-tidy-18 -p build/presets/host-debug
+        language: system
+        types: [c++]
+        files: ^runtime/application/src/Application\.cc$

@@ -1,4 +1,4 @@
 [wokwi]
 version = 1
-firmware = 'build/cesspool.bin'
-elf = 'build/cesspool.elf'
+firmware = 'build/presets/esp32c3-debug/cesspool.bin'
+elf = 'build/presets/esp32c3-debug/cesspool.elf'

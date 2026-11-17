@@ -1,17 +1,59 @@
 cmake_minimum_required(VERSION 3.22)
 
+option(CESSPOOL_HOST_TESTS "Configure host-only tests" OFF)
+option(CESSPOOL_STM32_COMPILE_ONLY "Compile the target-neutral STM32 skeleton" OFF)
+
+if(CESSPOOL_HOST_TESTS AND CESSPOOL_STM32_COMPILE_ONLY)
+  message(FATAL_ERROR "Host tests and STM32 compile-only modes are mutually exclusive")
+elseif(CESSPOOL_HOST_TESTS)
+  project(cesspool_host LANGUAGES CXX)
+  enable_testing()
+  add_subdirectory(runtime/application/tests)
+  return()
+elseif(CESSPOOL_STM32_COMPILE_ONLY)
+  project(cesspool_stm32 LANGUAGES CXX)
+  add_subdirectory(platforms/stm32)
+  return()
+endif()
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(composite_root)
 include(add_package)
 include(add_module)
+
+add_subdirectory(${CMAKE_SOURCE_DIR}/packages)
 
 # --------------------------------------------------------------------------------------------------
 include(FetchContent)
 FetchContent_Declare(
   qpcpp
   GIT_REPOSITORY https://github.com/vChavezB/qpcpp.git
-  GIT_TAG origin/esp32)
+  GIT_TAG 435131fdb5ffe5cb383aa16b5cf596a1b462167a)
 FetchContent_MakeAvailable(qpcpp)
+file(READ "${qpcpp_SOURCE_DIR}/ports/esp-idf/qf_port.cpp" QPCPP_PORT_SOURCE)
+string(FIND "${QPCPP_PORT_SOURCE}" "xTaskCreateStaticPinnedToCore(" QPCPP_STATIC_TASK_API)
+if(QPCPP_STATIC_TASK_API EQUAL -1)
+  find_package(Git REQUIRED)
+  execute_process(
+    COMMAND "${GIT_EXECUTABLE}" apply --check
+            "${CMAKE_SOURCE_DIR}/cmake/patches/qpcpp-static-task-allocation.patch"
+    WORKING_DIRECTORY "${qpcpp_SOURCE_DIR}"
+    RESULT_VARIABLE QPCPP_PATCH_CHECK
+    OUTPUT_QUIET
+    ERROR_VARIABLE QPCPP_PATCH_ERROR)
+  if(NOT QPCPP_PATCH_CHECK EQUAL 0)
+    message(FATAL_ERROR "Cannot apply the pinned qpcpp static-task patch: ${QPCPP_PATCH_ERROR}")
+  endif()
+  execute_process(
+    COMMAND "${GIT_EXECUTABLE}" apply
+            "${CMAKE_SOURCE_DIR}/cmake/patches/qpcpp-static-task-allocation.patch"
+    WORKING_DIRECTORY "${qpcpp_SOURCE_DIR}"
+    RESULT_VARIABLE QPCPP_PATCH_RESULT
+    ERROR_VARIABLE QPCPP_PATCH_ERROR)
+  if(NOT QPCPP_PATCH_RESULT EQUAL 0)
+    message(FATAL_ERROR "Failed to apply the pinned qpcpp static-task patch: ${QPCPP_PATCH_ERROR}")
+  endif()
+endif()
 set(QPCPP_src
     "${qpcpp_SOURCE_DIR}/src/qf/qep_hsm.cpp"
     "${qpcpp_SOURCE_DIR}/src/qf/qep_msm.cpp"
@@ -48,5 +90,4 @@ else()
   message(FATAL_ERROR "This project is intended to be built for ESP32 only. Please set ESP_32 to true.")
 endif()
 
-add_subdirectory(${CMAKE_SOURCE_DIR}/packages)
 add_subdirectory(${CMAKE_SOURCE_DIR}/runtime)

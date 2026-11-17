@@ -1,18 +1,16 @@
 #include "runtime/composite_root/system_orchestrator/SystemOrchestrator.hh"
 
-#include <esp_log.h>
-
 namespace runtime::composite_root
 {
-    namespace
-    {
-        constexpr char logTag[] = "SystemOrchestrator";
-    }
-
     SystemOrchestrator::SystemOrchestrator(
-        configuration::interface::ConfigurationLoader &configurationLoader,
-        human_machine_interface::display::interface::Display &display)
-        : displayAO_(display), systemAO_(displayAO_.ao, configurationLoader)
+        configuration::interface::ConfigurationLoader configurationLoader,
+        application::DisplayPort display,
+        application::InputPort input,
+        application::LogPort log)
+        : input_(input),
+          log_(log),
+          displayAO_(application_, display),
+          systemAO_(application_, displayAO_.ao, configurationLoader)
     {
     }
 
@@ -21,13 +19,15 @@ namespace runtime::composite_root
         displayAO_.start();
         systemAO_.start();
 
-        const auto controlsResult = controls_.start(systemAO_.ao);
-        if (controlsResult != ESP_OK)
+        const auto sink = application::InputSink::bind(systemAO_.ao);
+        const auto inputResult = input_.start(sink);
+        if (!inputResult)
         {
-            ESP_LOGE(logTag, "Failed to start controls: %s", esp_err_to_name(controlsResult));
-            return std::unexpected(SystemOrchestratorErrorStatus::unknown_failure);
+            log_.write(application::LogLevel::error, "Failed to start input controls");
+            return std::unexpected(SystemOrchestratorErrorStatus::input_initialization_failed);
         }
 
+        log_.write(application::LogLevel::info, "Application actors started");
         return std::expected<void, SystemOrchestratorErrorStatus>();
     }
 }

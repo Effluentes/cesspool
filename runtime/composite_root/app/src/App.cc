@@ -1,5 +1,4 @@
 #include <runtime/composite_root/app/App.hh>
-#include <cstdio>
 #include <qpcpp.hpp>
 
 namespace QP
@@ -24,22 +23,15 @@ extern "C" Q_NORETURN Q_onAssert(char_t const *const module, int_t location)
 namespace runtime::composite_root
 {
     App::App(SystemOrchestrator &orchestrator) : orchestrator_(orchestrator) {}
-    void App::run()
+    std::expected<void, SystemOrchestratorErrorStatus> App::run()
     {
         QP::QF::init();
-        QP::QF::psInit(subscrSto_.data(), subscrSto_.size());
-        QP::QF::poolInit(
-            poolSto_.data(),
-            poolSto_.size() * sizeof(runtime::actors::LargestEvt),
-            sizeof(runtime::actors::LargestEvt));
-        auto result = orchestrator_.orchestrate();
+        const auto result = orchestrator_.orchestrate();
         if (!result)
         {
-            std::printf(
-                "[App] System orchestration failed with error %u\n",
-                static_cast<unsigned>(result.error()));
+            return std::unexpected(result.error());
         }
-        // QP::QF::onStartup();
         QP::QF::run();
+        return {};
     }
 }

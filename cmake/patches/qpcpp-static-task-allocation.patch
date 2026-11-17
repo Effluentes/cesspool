@@ -1,0 +1,39 @@
+diff --git a/ports/esp-idf/qf_port.cpp b/ports/esp-idf/qf_port.cpp
+index fbadfaf3..4dd3a0aa 100644
+--- a/ports/esp-idf/qf_port.cpp
++++ b/ports/esp-idf/qf_port.cpp
+@@ -107,7 +107,7 @@ void QActive::start(std::uint_fast8_t const prio,
+         && (prio <= QF_MAX_ACTIVE) /* in range */
+         && (qSto != nullptr) /* queue storage must be provided */
+         && (qLen > 0U)             /* queue size must be provided */
+-       // && (stkSto != nullptr)   /* stack storage must be provided */
++        && (stkSto != nullptr)     /* static task storage must be provided */
+         && (stkSize > 0U));        /* stack size must be provided */
+ 
+     /* create the event queue for the AO */
+@@ -119,16 +119,21 @@ void QActive::start(std::uint_fast8_t const prio,
+     QS_FLUSH(); /* flush the QS trace buffer to the host */
+ 								
+ 										
+-    /* statically create the FreeRTOS task for the AO */
+-    BaseType_t task_res = xTaskCreatePinnedToCore(
++    /* Statically create the FreeRTOS task for the AO. The supplied storage
++     * contains StaticTask_t immediately followed by the StackType_t array. */
++    auto *taskBuffer = static_cast<StaticTask_t *>(stkSto);
++    auto *stackBuffer = reinterpret_cast<StackType_t *>(taskBuffer + 1);
++    auto taskHandle = xTaskCreateStaticPinnedToCore(
+               &task_function,           /* the task function */
+               taskName ,                /* the name of the task */
+               stkSize/sizeof(portSTACK_TYPE), /* stack size */
+               this,               /* the 'pvParameters' parameter */
+               prio + tskIDLE_PRIORITY,  /* FreeRTOS priority */
+-              //static_cast<StackType_t *>(stkSto),    /* stack storage */
+-              &m_thread,              /* task buffer */
++              stackBuffer,         /* stack storage */
++              taskBuffer,          /* task buffer */
+               static_cast<BaseType_t>(QP_CPU_NUM));            /* CPU number */
++    m_thread = taskHandle;
++    BaseType_t task_res = (taskHandle != nullptr) ? pdPASS : pdFAIL;
+      
+     Q_ENSURE_ID(210, task_res == pdPASS ); /* must be created */
+ }

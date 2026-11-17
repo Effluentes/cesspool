@@ -15,6 +15,6 @@ dependencies:
     version: 0.1.4
 direct_dependencies:
 - nixy4/u8g2
-manifest_hash: 63ea14a41a51f2fbd4f20f8ac22936e5044831b1ffdff405580a3adb6f03cfef
-target: esp32
+manifest_hash: 70c95101c96cb615abb723c2589431dec208b0d4a98d611e36d3b4f8b63cf933
+target: esp32c3
 version: 3.0.0

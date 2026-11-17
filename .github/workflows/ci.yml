@@ -1,0 +1,133 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  host:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure, build, and test
+        run: |
+          cmake --preset host-debug
+          cmake --build --preset host-debug
+          ctest --preset host-debug
+      - name: Configure, build, and test with sanitizers
+        run: |
+          cmake --preset host-asan
+          cmake --build --preset host-asan
+          ctest --preset host-asan
+
+  fuzz:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Clang 18
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes clang-18
+      - name: Build and run configuration-record fuzzer
+        run: |
+          cmake --preset host-fuzz
+          cmake --build --preset host-fuzz --target configuration_record_fuzzer
+          build/presets/host-fuzz/runtime/application/tests/configuration_record_fuzzer \
+            -max_total_time=30 -max_len=128
+
+  esp32:
+    runs-on: ubuntu-24.04
+    container:
+      image: espressif/idf@sha256:0e714292d8b4e6e75cb42e25461716221448858e125d96dbfea09732964c412d
+    env:
+      IDF_TARGET: esp32c3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build firmware and report size
+        run: |
+          . "$IDF_PATH/export.sh"
+          idf.py --version
+          cmake --preset esp32-debug
+          cmake --build --preset esp32-debug
+          mkdir -p reports
+          python "$GITHUB_WORKSPACE/tools/check_esp32_size.py" \
+            "$GITHUB_WORKSPACE/build/presets/esp32c3-debug/cesspool.map" \
+            "$GITHUB_WORKSPACE/build/presets/esp32c3-debug/cesspool.bin"
+          python -m esp_idf_size --format table \
+            "$GITHUB_WORKSPACE/build/presets/esp32c3-debug/cesspool.map" \
+            | tee reports/esp32-size.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: esp32-size-report
+          path: reports/esp32-size.txt
+
+  wokwi:
+    runs-on: ubuntu-24.04
+    container:
+      image: espressif/idf@sha256:0e714292d8b4e6e75cb42e25461716221448858e125d96dbfea09732964c412d
+    env:
+      IDF_TARGET: esp32c3
+      WOKWI_CLI_TOKEN: ${{ secrets.WOKWI_CLI_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build firmware
+        run: |
+          . "$IDF_PATH/export.sh"
+          cmake --preset esp32-debug
+          cmake --build --preset esp32-debug
+      - name: Simulate the ESP32-C3 boot flow
+        if: ${{ env.WOKWI_CLI_TOKEN != '' }}
+        uses: wokwi/wokwi-ci-action@09e807a07e05b6f2498e43e3fb7ffcf38c277af7
+        with:
+          token: ${{ secrets.WOKWI_CLI_TOKEN }}
+          path: .
+          elf: build/presets/esp32c3-debug/cesspool.elf
+          timeout: 30000
+          expect_text: "Application actors started"
+          fail_text: "QP ASSERTION FAILED"
+          serial_log_file: reports/wokwi-serial.log
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() && env.WOKWI_CLI_TOKEN != '' }}
+        with:
+          name: wokwi-serial-log
+          path: reports/wokwi-serial.log
+
+  stm32-compile:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install ARM cross compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes gcc-arm-none-eabi
+      - name: Compile target-neutral application
+        run: |
+          cmake --preset stm32-compile
+          cmake --build --preset stm32-compile
+
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install static-analysis tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes clang-format-18 clang-tidy-18
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Prepare compile database
+        run: |
+          cmake --preset host-debug
+          cmake --build --preset host-debug
+      - name: Install pre-commit
+        run: python -m pip install pre-commit==4.2.0
+      - name: Run repository checks
+        run: pre-commit run --all-files
+      - name: Validate CMake presets and whitespace
+        run: |
+          cmake --list-presets
+          git diff --check

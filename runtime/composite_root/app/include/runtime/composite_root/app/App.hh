@@ -1,8 +1,7 @@
 #pragma once
+#include <expected>
 #include <runtime/composite_root/system_orchestrator/SystemOrchestrator.hh>
-#include <array>
 #include <qpcpp.hpp>
-#include <runtime/actors/system_ao/SystemAO.hh>
 
 namespace runtime::composite_root
 {
@@ -10,11 +9,9 @@ namespace runtime::composite_root
     {
     public:
         App(SystemOrchestrator &orchestrator);
-        void run();
+        std::expected<void, SystemOrchestratorErrorStatus> run();
 
     private:
         SystemOrchestrator &orchestrator_;
-        std::array<QP::QSubscrList, runtime::actors::MAX_SIG> subscrSto_;
-        alignas(void *) std::array<runtime::actors::LargestEvt, 20> poolSto_;
     };
 }

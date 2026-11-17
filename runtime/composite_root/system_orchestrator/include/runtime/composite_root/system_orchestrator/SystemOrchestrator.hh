@@ -7,7 +7,12 @@
 #include <utility>
 #include <runtime/actors/common/Priority.hh>
 #include <configuration/configuration/interface/ConfigurationLoader.hh>
-#include <esp32/human_machine_interface/controls/Controls.hh>
+#include <runtime/application/Application.hh>
+#include <runtime/application/InputPort.hh>
+#include <runtime/application/LogPort.hh>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <cstddef>
 
 namespace runtime::composite_root
 {
@@ -15,8 +20,10 @@ namespace runtime::composite_root
     {
     public:
         explicit SystemOrchestrator(
-            configuration::interface::ConfigurationLoader &configurationLoader,
-            human_machine_interface::display::interface::Display &display);
+            configuration::interface::ConfigurationLoader configurationLoader,
+            application::DisplayPort display,
+            application::InputPort input,
+            application::LogPort log);
         std::expected<void, SystemOrchestratorErrorStatus> orchestrate();
 
     private:
@@ -24,7 +31,13 @@ namespace runtime::composite_root
         struct ActiveObject
         {
             using EventQueue = std::array<QP::QEvt const *, 10>;
-            static constexpr std::uint_fast16_t taskStackSizeBytes = 4096;
+            static constexpr std::size_t taskStackWords = 1024;
+            struct TaskStorage
+            {
+                StaticTask_t controlBlock{};
+                std::array<StackType_t, taskStackWords> stack{};
+            };
+            static_assert(offsetof(TaskStorage, stack) == sizeof(StaticTask_t));
 
             template <typename... Args>
             explicit ActiveObject(Args &&...args)
@@ -34,27 +47,25 @@ namespace runtime::composite_root
 
             ActiveObjectType ao;
             EventQueue eventQueue;
-            void post(QP::QEvt const &event)
-            {
-                ao.POST(&event, &ao);
-            }
+            TaskStorage taskStorage;
 
             void start()
             {
-                static const auto parameters = nullptr;
                 auto **queue_ptr = const_cast<QP::QEvt const **>(eventQueue.data());
                 auto queue_size = static_cast<std::uint_fast16_t>(eventQueue.size());
                 ao.start(
                     static_cast<std::uint_fast8_t>(priority),
                     queue_ptr,
                     queue_size,
-                    nullptr,
-                    taskStackSizeBytes,
-                    parameters);
+                    &taskStorage.controlBlock,
+                    static_cast<std::uint_fast16_t>(sizeof(taskStorage.stack)),
+                    nullptr);
             }
         };
+        application::Application application_;
+        application::InputPort input_;
+        application::LogPort log_;
         ActiveObject<actors::DisplayAO, actors::ActiveObjectPriority::DISPLAY_AO_PRIORITY> displayAO_;
         ActiveObject<actors::SystemAO, actors::ActiveObjectPriority::SYSTEM_AO_PRIORITY> systemAO_;
-        esp32::human_machine_interface::controls::Controls controls_;
     };
 }

@@ -2,7 +2,7 @@ include(FetchContent)
 FetchContent_Declare(
   qpcpp
   GIT_REPOSITORY https://github.com/vChavezB/qpcpp.git
-  GIT_TAG esp32)
+  GIT_TAG 435131fdb5ffe5cb383aa16b5cf596a1b462167a)
 set(QPCPP_CFG_PORT
     "posix"
     CACHE STRING "" FORCE)

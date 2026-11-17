@@ -1,14 +1,15 @@
 #pragma once
-#include "configuration/configuration/Configuration.hh"
-#include <expected>
+
+#include <configuration/configuration/interface/ConfigurationLoader.hh>
 
 namespace esp32::configuration
 {
-    class ConfigurationLoader
+    using ConfigurationLoaderError = ::configuration::interface::ConfigurationLoaderError;
+
+    class ConfigurationLoader final
     {
     public:
-        virtual ~ConfigurationLoader() = default;
-
-        virtual std::expected<configuration::Configuration, ConfigurationLoaderError> loadConfiguration() override = 0;
-    }
+        std::expected<::configuration::Configuration, ConfigurationLoaderError>
+        loadConfiguration();
+    };
 }

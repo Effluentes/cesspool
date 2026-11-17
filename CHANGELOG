@@ -4,3 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+
+- Add host-debug, host-sanitizer, ESP32-C3, and STM32 compile-only CMake presets.
+- Add the platform-neutral application core and Catch2 tests for navigation, command versioning,
+  duplicate command suppression, and status-view replay.
+- Document the current architecture, event catalog, STRIDE threat model, and architecture
+  decisions.
+
+### Changed
+
+- Pin QP/C++ to a specific upstream commit and use statically allocated QP task storage.
+- Use fixed-size configuration text buffers and clear moved-from secret buffers.
+
+### Known limitations
+
+- The local ESP-IDF development version and `dependencies.lock` version differ; production toolchain
+  qualification remains blocked.
+- Remote service, durable event storage, atomic configuration persistence, authenticated OTA,
+  secure boot/encryption provisioning, Wokwi CI, and full static-analysis coverage are incomplete.

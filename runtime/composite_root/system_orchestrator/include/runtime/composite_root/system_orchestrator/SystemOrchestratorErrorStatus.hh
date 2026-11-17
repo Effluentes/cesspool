@@ -4,6 +4,6 @@ namespace runtime::composite_root
 {
     enum class SystemOrchestratorErrorStatus
     {
-        unknown_failure
+        input_initialization_failed
     };
 }

@@ -1,9 +1,6 @@
 set(NAME ${PACKAGE_NAME}_${MODULE_NAME})
 
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR} SOURCE)
-list(
-  APPEND SOURCE
-  ${CMAKE_SOURCE_DIR}/platforms/esp32/human_machine_interface/controls/src/Controls.cc)
 add_library(${NAME} ${SOURCE})
 add_library(${PACKAGE_NAME}::${MODULE_NAME} ALIAS ${NAME})
 set_target_properties(
@@ -16,12 +13,11 @@ set_target_properties(
              CXX_EXTENSIONS OFF
              CXX_STANDARD_REQUIRED ON)
 
-target_include_directories(
-  ${NAME}
-  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include/
-         ${CMAKE_SOURCE_DIR}/platforms/esp32/human_machine_interface/controls/include)
+target_include_directories(${NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include/)
 
-target_link_libraries(${NAME} PUBLIC actors::system_ao actors::common idf::esp_driver_gpio)
+target_link_libraries(
+  ${NAME}
+  PUBLIC actors::system_ao actors::common runtime::application)
 
 target_compile_options(
   ${NAME}

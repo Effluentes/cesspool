@@ -1,0 +1,121 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "host-debug",
+      "displayName": "Host tests (Debug)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/presets/host-debug",
+      "cacheVariables": {
+        "CESSPOOL_HOST_TESTS": "ON",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "host-asan",
+      "displayName": "Host tests (ASan + UBSan)",
+      "inherits": "host-debug",
+      "binaryDir": "${sourceDir}/build/presets/host-asan",
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-fsanitize=address,undefined -fno-omit-frame-pointer",
+        "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=address,undefined"
+      }
+    },
+    {
+      "name": "host-fuzz",
+      "displayName": "Host libFuzzer targets",
+      "inherits": "host-debug",
+      "binaryDir": "${sourceDir}/build/presets/host-fuzz",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "clang++-18",
+        "CESSPOOL_BUILD_FUZZERS": "ON",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "OFF"
+      }
+    },
+    {
+      "name": "esp32-debug",
+      "displayName": "ESP32-C3 firmware (Debug)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/presets/esp32c3-debug",
+      "environment": {
+        "IDF_PATH": "$penv{IDF_PATH}",
+        "IDF_TARGET": "esp32c3"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CESSPOOL_HOST_TESTS": "OFF",
+        "CESSPOOL_STM32_COMPILE_ONLY": "OFF",
+        "SDKCONFIG": "${sourceDir}/build/presets/esp32c3-debug/sdkconfig",
+        "SDKCONFIG_DEFAULTS": "${sourceDir}/sdkconfig.defaults.esp32c3"
+      }
+    },
+    {
+      "name": "esp32-release",
+      "displayName": "ESP32-C3 firmware (Release)",
+      "inherits": "esp32-debug",
+      "binaryDir": "${sourceDir}/build/presets/esp32c3-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "SDKCONFIG": "${sourceDir}/build/presets/esp32c3-release/sdkconfig"
+      }
+    },
+    {
+      "name": "stm32-compile",
+      "displayName": "STM32 application compile-only",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/presets/stm32-compile",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/arm-none-eabi.cmake",
+      "cacheVariables": {
+        "CESSPOOL_STM32_COMPILE_ONLY": "ON",
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "host-debug",
+      "configurePreset": "host-debug"
+    },
+    {
+      "name": "host-asan",
+      "configurePreset": "host-asan"
+    },
+    {
+      "name": "host-fuzz",
+      "configurePreset": "host-fuzz"
+    },
+    {
+      "name": "esp32-debug",
+      "configurePreset": "esp32-debug"
+    },
+    {
+      "name": "esp32-release",
+      "configurePreset": "esp32-release"
+    },
+    {
+      "name": "stm32-compile",
+      "configurePreset": "stm32-compile"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "host-debug",
+      "configurePreset": "host-debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "host-asan",
+      "configurePreset": "host-asan",
+      "environment": {
+        "ASAN_OPTIONS": "detect_leaks=1:strict_string_checks=1",
+        "UBSAN_OPTIONS": "print_stacktrace=1:halt_on_error=1"
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}

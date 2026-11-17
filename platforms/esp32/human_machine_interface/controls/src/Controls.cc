@@ -3,20 +3,26 @@
 #include <array>
 #include <cstdint>
 #include <driver/gpio.h>
+#include <esp_log.h>
+#include <esp_task_wdt.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
-#include <runtime/actors/common/Signals.hh>
 
 namespace
 {
+    constexpr char tag[] = "Controls";
+    using runtime::application::InputError;
+    using runtime::application::UserInput;
+
     constexpr gpio_num_t encoderClockPin = GPIO_NUM_16;
     constexpr gpio_num_t encoderDataPin = GPIO_NUM_17;
     constexpr gpio_num_t encoderSwitchPin = GPIO_NUM_18;
-    constexpr gpio_num_t greenButtonPin = GPIO_NUM_26;
-    constexpr gpio_num_t blueButtonPin = GPIO_NUM_27;
+    constexpr gpio_num_t greenButtonPin = GPIO_NUM_6;
+    constexpr gpio_num_t blueButtonPin = GPIO_NUM_7;
     constexpr TickType_t pollingIntervalTicks =
         pdMS_TO_TICKS(10) == 0 ? 1 : pdMS_TO_TICKS(10);
-    constexpr TickType_t debounceTicks = pdMS_TO_TICKS(30);
+    constexpr TickType_t debounceTicks =
+        pdMS_TO_TICKS(30) == 0 ? 1 : pdMS_TO_TICKS(30);
     constexpr std::array<std::int8_t, 16> encoderTransitions{
         0, -1, 1, 0,
         1, 0, 0, -1,
@@ -26,7 +32,7 @@ namespace
     struct DebouncedButton
     {
         gpio_num_t pin;
-        QP::QSignal signal;
+        UserInput input;
         int stableLevel;
         int lastLevel;
         TickType_t lastChange;
@@ -35,11 +41,12 @@ namespace
 
 namespace esp32::human_machine_interface::controls
 {
-    esp_err_t Controls::start(QP::QActive &systemAO)
+    std::expected<void, runtime::application::InputError> Controls::start(
+        runtime::application::InputSink const &sink)
     {
         if (started_)
         {
-            return ESP_ERR_INVALID_STATE;
+            return std::unexpected(InputError::resourceUnavailable);
         }
 
         gpio_config_t config{};
@@ -54,28 +61,27 @@ namespace esp32::human_machine_interface::controls
         config.pull_down_en = GPIO_PULLDOWN_DISABLE;
         config.intr_type = GPIO_INTR_DISABLE;
 
-        const auto configResult = gpio_config(&config);
-        if (configResult != ESP_OK)
+        if (gpio_config(&config) != ESP_OK)
         {
-            return configResult;
+            return std::unexpected(InputError::hardwareInitializationFailed);
         }
 
-        systemAO_ = &systemAO;
-        const auto taskResult = xTaskCreate(
-            taskEntry,
-            "controls",
-            3072,
-            this,
-            5,
-            nullptr);
-        if (taskResult != pdPASS)
+        sink_ = sink;
+        if (xTaskCreateStatic(
+                taskEntry,
+                "controls",
+                static_cast<uint32_t>(taskStack_.size()),
+                this,
+                5,
+                taskStack_.data(),
+                &taskControlBlock_) == nullptr)
         {
-            systemAO_ = nullptr;
-            return ESP_ERR_NO_MEM;
+            sink_ = {};
+            return std::unexpected(InputError::resourceUnavailable);
         }
 
         started_ = true;
-        return ESP_OK;
+        return {};
     }
 
     void Controls::taskEntry(void *arg)
@@ -85,13 +91,14 @@ namespace esp32::human_machine_interface::controls
 
     void Controls::run()
     {
+        ESP_ERROR_CHECK(esp_task_wdt_add(nullptr));
         const auto initialTime = xTaskGetTickCount();
         std::array<DebouncedButton, 3> buttons{{
-            {encoderSwitchPin, runtime::actors::CONTROL_SELECT_SIG,
+            {encoderSwitchPin, UserInput::select,
              gpio_get_level(encoderSwitchPin), gpio_get_level(encoderSwitchPin), initialTime},
-            {greenButtonPin, runtime::actors::CONTROL_CONFIRM_SIG,
+            {greenButtonPin, UserInput::confirm,
              gpio_get_level(greenButtonPin), gpio_get_level(greenButtonPin), initialTime},
-            {blueButtonPin, runtime::actors::CONTROL_BACK_SIG,
+            {blueButtonPin, UserInput::back,
              gpio_get_level(blueButtonPin), gpio_get_level(blueButtonPin), initialTime}}};
 
         auto previousEncoderState = static_cast<std::uint8_t>(
@@ -100,6 +107,15 @@ namespace esp32::human_machine_interface::controls
 
         for (;;)
         {
+            ESP_ERROR_CHECK(esp_task_wdt_reset());
+            const auto freeStackWords = uxTaskGetStackHighWaterMark(nullptr);
+            if (freeStackWords < lowestFreeStackWords_)
+            {
+                lowestFreeStackWords_ = freeStackWords;
+                ESP_LOGI(tag, "Stack low-water mark: %u words",
+                         static_cast<unsigned>(lowestFreeStackWords_));
+            }
+
             const auto now = xTaskGetTickCount();
             const auto encoderState = static_cast<std::uint8_t>(
                 (gpio_get_level(encoderClockPin) << 1) | gpio_get_level(encoderDataPin));
@@ -110,12 +126,12 @@ namespace esp32::human_machine_interface::controls
 
             if (encoderPosition >= 4)
             {
-                postSignal(runtime::actors::CONTROL_ROTATE_RIGHT_SIG);
+                sink_.post(UserInput::rotateRight);
                 encoderPosition = 0;
             }
             else if (encoderPosition <= -4)
             {
-                postSignal(runtime::actors::CONTROL_ROTATE_LEFT_SIG);
+                sink_.post(UserInput::rotateLeft);
                 encoderPosition = 0;
             }
 
@@ -133,45 +149,12 @@ namespace esp32::human_machine_interface::controls
                     button.stableLevel = level;
                     if (level == 0)
                     {
-                        postSignal(button.signal);
+                        sink_.post(button.input);
                     }
                 }
             }
 
             vTaskDelay(pollingIntervalTicks);
         }
-    }
-
-    void Controls::postSignal(QP::QSignal signal)
-    {
-        static QP::QEvt const rotateLeftEvent{runtime::actors::CONTROL_ROTATE_LEFT_SIG, 0, 0};
-        static QP::QEvt const rotateRightEvent{runtime::actors::CONTROL_ROTATE_RIGHT_SIG, 0, 0};
-        static QP::QEvt const selectEvent{runtime::actors::CONTROL_SELECT_SIG, 0, 0};
-        static QP::QEvt const confirmEvent{runtime::actors::CONTROL_CONFIRM_SIG, 0, 0};
-        static QP::QEvt const backEvent{runtime::actors::CONTROL_BACK_SIG, 0, 0};
-
-        QP::QEvt const *event = nullptr;
-        switch (signal)
-        {
-        case runtime::actors::CONTROL_ROTATE_LEFT_SIG:
-            event = &rotateLeftEvent;
-            break;
-        case runtime::actors::CONTROL_ROTATE_RIGHT_SIG:
-            event = &rotateRightEvent;
-            break;
-        case runtime::actors::CONTROL_SELECT_SIG:
-            event = &selectEvent;
-            break;
-        case runtime::actors::CONTROL_CONFIRM_SIG:
-            event = &confirmEvent;
-            break;
-        case runtime::actors::CONTROL_BACK_SIG:
-            event = &backEvent;
-            break;
-        default:
-            return;
-        }
-
-        systemAO_->POST(event, this);
     }
 }

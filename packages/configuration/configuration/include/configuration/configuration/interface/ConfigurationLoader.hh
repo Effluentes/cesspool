@@ -1,5 +1,6 @@
 #pragma once
 #include "configuration/configuration/Configuration.hh"
+#include <concepts>
 #include <expected>
 
 namespace configuration::interface
@@ -10,11 +11,35 @@ namespace configuration::interface
         INVALID_FORMAT,
         UNKNOWN_ERROR
     };
-    class ConfigurationLoader
-    {
-    public:
-        virtual ~ConfigurationLoader() = default;
 
-        virtual std::expected<configuration::Configuration, ConfigurationLoaderError> loadConfiguration() = 0;
+    using ConfigurationLoadResult =
+        std::expected<configuration::Configuration, ConfigurationLoaderError>;
+
+    template <typename T>
+    concept ConfigurationLoaderPort = requires(T &loader)
+    {
+        { loader.loadConfiguration() } -> std::same_as<ConfigurationLoadResult>;
+    };
+
+    struct ConfigurationLoader
+    {
+        void *context;
+        ConfigurationLoadResult (*loadFunction)(void *);
+
+        template <ConfigurationLoaderPort Adapter>
+        [[nodiscard]] static ConfigurationLoader bind(Adapter &adapter) noexcept
+        {
+            return {
+                &adapter,
+                [](void *context)
+                {
+                    return static_cast<Adapter *>(context)->loadConfiguration();
+                }};
+        }
+
+        [[nodiscard]] ConfigurationLoadResult loadConfiguration() const
+        {
+            return loadFunction(context);
+        }
     };
 }

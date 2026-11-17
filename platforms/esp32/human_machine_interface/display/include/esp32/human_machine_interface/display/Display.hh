@@ -1,26 +1,21 @@
 #pragma once
 
-#include <human_machine_interface/display/interface/Display.hh>
-#include <memory>
+#include <runtime/application/DisplayPort.hh>
+
+#include <esp32_hw_i2c.h>
+#include <u8g2.h>
 
 namespace esp32::human_machine_interface::display::interface
 {
-    using ::human_machine_interface::display::DisplayScreen;
-
-    class Display : public ::human_machine_interface::display::interface::Display
+    class Display final
     {
     public:
         Display();
-        ~Display() override;
 
-        virtual void showScreen(DisplayScreen screen) override;
-        void showMenu(std::uint8_t selectedItem) override;
-        void showSlaves() override;
-        void showSettingsMenu(std::uint8_t selectedItem) override;
-        void showSetting(std::uint8_t setting) override;
+        void render(runtime::application::View const &view);
 
     private:
-        struct Impl;
-        std::unique_ptr<Impl> impl_;
+        u8g2_esp32_i2c_ctx_t i2cContext_{};
+        u8g2_t u8g2_{};
     };
 }
