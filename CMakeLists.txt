@@ -4,6 +4,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(composite_root)
 include(add_package)
 include(add_module)
+include(add_component)
 
 # --------------------------------------------------------------------------------------------------
 include(FetchContent)
@@ -44,6 +45,8 @@ if(ESP_32)
   )
   include($ENV{IDF_PATH}/tools/cmake/project.cmake)
   project(cesspool)
+  add_subdirectory(${CMAKE_SOURCE_DIR}/platforms/esp32)
+
 else()
   message(FATAL_ERROR "This project is intended to be built for ESP32 only. Please set ESP_32 to true.")
 endif()

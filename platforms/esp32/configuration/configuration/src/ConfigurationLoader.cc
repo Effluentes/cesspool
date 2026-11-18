@@ -2,11 +2,12 @@
 
 namespace esp32::configuration
 {
-    std::expected<configuration::Configuration, ConfigurationLoaderError> ConfigurationLoader::loadConfiguration()
+    std::expected<::configuration::Configuration, ::configuration::interface::ConfigurationLoaderError>
+    ConfigurationLoader::loadConfiguration()
     {
-        configuration::Configuration config;
+        ::configuration::Configuration config;
         config.wifi.ssid = "ESP32_SSID";
         config.wifi.password = "ESP32_PASSWORD";
-        return std::expected<configuration::Configuration, ConfigurationLoaderError>(config);
+        return config;
     }
 }

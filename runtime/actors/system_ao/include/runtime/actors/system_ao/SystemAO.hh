@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <qpcpp.hpp>
 #include <runtime/actors/common/Signals.hh>
-#include <runtime/actors/display_ao/DisplayAO.hh>
 #include <configuration/configuration/interface/ConfigurationLoader.hh>
 
 namespace runtime::actors
@@ -12,7 +11,6 @@ namespace runtime::actors
     {
     public:
         SystemAO(
-            DisplayAO &displayAO,
             configuration::interface::ConfigurationLoader &configurationLoader) noexcept;
 
         SystemAO(SystemAO const &) = delete;
@@ -28,7 +26,6 @@ namespace runtime::actors
         Q_STATE_DECL(settingDetail);
         Q_STATE_DECL(operational);
 
-        DisplayAO &displayAO_;
         configuration::interface::ConfigurationLoader &configurationLoader_;
         QP::QTimeEvt startupTimer_;
         std::uint8_t selectedMenuItem_{0};

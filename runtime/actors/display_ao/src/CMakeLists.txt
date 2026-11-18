@@ -15,6 +15,5 @@ set_target_properties(
 
 target_include_directories(
   ${NAME}
-  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include/
-         ${CMAKE_SOURCE_DIR}/packages/human_machine_interface/display/include)
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include/)
 target_link_libraries(${NAME} PUBLIC actors::common qpcpp)

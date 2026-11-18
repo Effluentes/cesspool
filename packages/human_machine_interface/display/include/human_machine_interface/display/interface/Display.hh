@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace human_machine_interface::display
+namespace human_machine_interface::display::interface
 {
     enum class DisplayScreen
     {

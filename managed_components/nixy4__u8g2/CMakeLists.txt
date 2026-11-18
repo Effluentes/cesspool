@@ -221,7 +221,7 @@ if(DEFINED ESP_PLATFORM AND COMMAND idf_component_register)
 		SRCS ${U8G2_SOURCES}
 		INCLUDE_DIRS ${U8G2_INCLUDE_DIRS}
 		PRIV_INCLUDE_DIRS ${U8G2_PRIV_INCLUDE_DIRS}
-		REQUIRES driver esp_driver_i2c esp_driver_spi
+		REQUIRES esp_driver_gpio esp_driver_i2c esp_driver_spi
 	)
 else()
 	add_library(u8g2 STATIC ${U8G2_SOURCES})

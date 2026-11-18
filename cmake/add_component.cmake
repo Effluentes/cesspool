@@ -1,0 +1,5 @@
+function(add_component component_name)
+  set(COMPONENT_NAME ${component_name})
+  add_subdirectory(${COMPONENT_NAME})
+  message(STATUS "Adding component: ${COMPONENT_NAME} to module ${MODULE_NAME}")
+endfunction()

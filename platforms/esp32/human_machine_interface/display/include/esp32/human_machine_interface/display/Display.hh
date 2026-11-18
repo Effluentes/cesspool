@@ -18,9 +18,5 @@ namespace esp32::human_machine_interface::display::interface
         void showSlaves() override;
         void showSettingsMenu(std::uint8_t selectedItem) override;
         void showSetting(std::uint8_t setting) override;
-
-    private:
-        struct Impl;
-        std::unique_ptr<Impl> impl_;
     };
 }

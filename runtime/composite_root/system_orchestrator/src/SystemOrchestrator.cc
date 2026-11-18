@@ -10,15 +10,13 @@ namespace runtime::composite_root
     }
 
     SystemOrchestrator::SystemOrchestrator(
-        configuration::interface::ConfigurationLoader &configurationLoader,
-        human_machine_interface::display::interface::Display &display)
-        : displayAO_(display), systemAO_(displayAO_.ao, configurationLoader)
+        configuration::interface::ConfigurationLoader &configurationLoader)
+        : systemAO_(configurationLoader)
     {
     }
 
     std::expected<void, SystemOrchestratorErrorStatus> SystemOrchestrator::orchestrate()
     {
-        displayAO_.start();
         systemAO_.start();
 
         const auto controlsResult = controls_.start(systemAO_.ao);
