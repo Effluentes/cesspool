@@ -7,9 +7,7 @@
 #include <utility>
 #include <runtime/actors/common/Priority.hh>
 #include <configuration/configuration/interface/ConfigurationLoader.hh>
-#include <esp32/human_machine_interface/controls/Controls.hh>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
+#include <runtime/actors/provisioning_ao/ProvisioningAO.hh>
 
 namespace runtime::composite_root
 {
@@ -65,6 +63,6 @@ namespace runtime::composite_root
             }
         };
         ActiveObject<actors::SystemAO, actors::ActiveObjectPriority::SYSTEM_AO_PRIORITY> systemAO_;
-        esp32::human_machine_interface::controls::Controls controls_;
+        ActiveObject<actors::ProvisioningAO, actors::ActiveObjectPriority::PROVISIONING_AO_PRIORITY> provisioningAO_;
     };
 }

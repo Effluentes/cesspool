@@ -11,21 +11,17 @@ namespace runtime::composite_root
 
     SystemOrchestrator::SystemOrchestrator(
         configuration::interface::ConfigurationLoader &configurationLoader)
-        : systemAO_(configurationLoader)
+        : provisioningAO_(),
+          systemAO_(provisioningAO_.ao, configurationLoader)
+
     {
     }
 
     std::expected<void, SystemOrchestratorErrorStatus> SystemOrchestrator::orchestrate()
     {
+        provisioningAO_.start();
+
         systemAO_.start();
-
-        const auto controlsResult = controls_.start(systemAO_.ao);
-        if (controlsResult != ESP_OK)
-        {
-            ESP_LOGE(logTag, "Failed to start controls: %s", esp_err_to_name(controlsResult));
-            return std::unexpected(SystemOrchestratorErrorStatus::unknown_failure);
-        }
-
         return std::expected<void, SystemOrchestratorErrorStatus>();
     }
 }

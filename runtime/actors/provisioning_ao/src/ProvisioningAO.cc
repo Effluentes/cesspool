@@ -1,0 +1,54 @@
+#include "runtime/actors/provisioning_ao/ProvisioningAO.hh"
+#include <cstdio>
+#include <runtime/actors/common/Signals.hh>
+
+namespace runtime::actors
+{
+    ProvisioningAO::ProvisioningAO() noexcept
+        : QP::QActive(Q_STATE_CAST(&ProvisioningAO::initial))
+    {
+    }
+
+    Q_STATE_DEF(ProvisioningAO, initial)
+    {
+        return tran(&ProvisioningAO::provisioning);
+    }
+
+    Q_STATE_DEF(ProvisioningAO, provisioning)
+    {
+        QP::QState status;
+        switch (e->sig)
+        {
+        case Q_ENTRY_SIG:
+        {
+            std::printf("[ProvisioningAO] State: PROVISIONING\n");
+            status = Q_HANDLED();
+            break;
+        }
+        case Q_EXIT_SIG:
+        {
+            std::printf("[ProvisioningAO] Exiting PROVISIONING state\n");
+            status = Q_HANDLED();
+            break;
+        }
+        case Q_INIT_SIG:
+        {
+            std::printf("[ProvisioningAO] Initializing ProvisioningAO\n");
+            status = Q_HANDLED();
+            break;
+        }
+        case Signals::CONFIGURATION_MISSING_SIG:
+        {
+            std::printf("[ProvisioningAO] Received CONFIGURATION_MISSING_SIG\n");
+            status = Q_HANDLED();
+            break;
+        }
+        default:
+        {
+            status = super(&QP::QHsm::top);
+            break;
+        }
+        }
+        return status;
+    }
+} // namespace runtime::actors

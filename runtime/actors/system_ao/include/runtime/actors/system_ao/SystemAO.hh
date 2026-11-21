@@ -4,6 +4,7 @@
 #include <qpcpp.hpp>
 #include <runtime/actors/common/Signals.hh>
 #include <configuration/configuration/interface/ConfigurationLoader.hh>
+#include <runtime/actors/provisioning_ao/ProvisioningAO.hh>
 
 namespace runtime::actors
 {
@@ -11,6 +12,7 @@ namespace runtime::actors
     {
     public:
         SystemAO(
+            runtime::actors::ProvisioningAO &provisioningAO,
             configuration::interface::ConfigurationLoader &configurationLoader) noexcept;
 
         SystemAO(SystemAO const &) = delete;
@@ -26,6 +28,7 @@ namespace runtime::actors
         Q_STATE_DECL(settingDetail);
         Q_STATE_DECL(operational);
 
+        runtime::actors::ProvisioningAO &provisioningAO_;
         configuration::interface::ConfigurationLoader &configurationLoader_;
         QP::QTimeEvt startupTimer_;
         std::uint8_t selectedMenuItem_{0};
