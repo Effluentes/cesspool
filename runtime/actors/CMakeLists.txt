@@ -1,5 +1,6 @@
 add_package()
 add_module(common)
-# add_module(display_ao)
-add_module(system_ao)
+add_module(display_ao)
 add_module(provisioning_ao)
+add_module(wifi_ao)
+add_module(system_ao)

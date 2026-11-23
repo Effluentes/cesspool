@@ -13,7 +13,7 @@ namespace
     }
 }
 
-namespace esp32::human_machine_interface::display::interface
+namespace esp32::human_machine_interface
 {
     struct Display::Impl
     {
@@ -53,101 +53,57 @@ namespace esp32::human_machine_interface::display::interface
 
         switch (screen)
         {
+        case DisplayScreen::ERROR:
+            showErrorScreen();
+            break;
         case DisplayScreen::SPLASH:
-            drawCentered(u8g2, "CESSPOOL", 28);
-            drawCentered(u8g2, "Starting...", 44);
+            showSplashScreen();
             break;
         case DisplayScreen::MAIN_MENU:
-            u8g2_DrawStr(&u8g2, 0, 12, "MAIN MENU");
-            u8g2_DrawHLine(&u8g2, 0, 17, 128);
-            u8g2_DrawStr(&u8g2, 0, 32, "System ready");
+            showMainMenuScreen();
             break;
         case DisplayScreen::SETTINGS:
-            u8g2_DrawStr(&u8g2, 0, 12, "SETTINGS");
-            u8g2_DrawHLine(&u8g2, 0, 17, 128);
-            break;
-        case DisplayScreen::ERROR:
-            drawCentered(u8g2, "ERROR", 28);
-            drawCentered(u8g2, "Check system status", 44);
+            showSettingsScreen();
             break;
         case DisplayScreen::FIRST_CONFIGURATION:
-            drawCentered(u8g2, "CESSPOOL", 36);
+            showFirstConfigurationScreen();
             break;
         }
 
         u8g2_SendBuffer(&u8g2);
     }
 
-    void Display::showMenu(std::uint8_t selectedItem)
+    void Display::showErrorScreen()
     {
         auto &u8g2 = impl_->u8g2;
-        u8g2_ClearBuffer(&u8g2);
-        u8g2_SetFont(&u8g2, u8g2_font_6x10_tf);
-        u8g2_DrawStr(&u8g2, 0, 10, "MAIN MENU");
-        u8g2_DrawHLine(&u8g2, 0, 14, 128);
-
-        const char *const items[] = {"Slaves", "Settings"};
-        for (std::uint8_t index = 0; index < 2; ++index)
-        {
-            u8g2_DrawStr(&u8g2, 2, 32 + index * 16, index == selectedItem ? ">" : " ");
-            u8g2_DrawStr(&u8g2, 12, 32 + index * 16, items[index]);
-        }
-
-        u8g2_SendBuffer(&u8g2);
+        drawCentered(u8g2, "ERROR", 28);
+        drawCentered(u8g2, "Check system status", 44);
     }
 
-    void Display::showSlaves()
+    void Display::showSplashScreen()
     {
         auto &u8g2 = impl_->u8g2;
-        u8g2_ClearBuffer(&u8g2);
-        u8g2_SetFont(&u8g2, u8g2_font_6x10_tf);
-        u8g2_DrawStr(&u8g2, 0, 10, "SLAVES");
-        u8g2_DrawHLine(&u8g2, 0, 14, 128);
-        u8g2_DrawStr(&u8g2, 0, 32, "No devices found");
-        u8g2_DrawStr(&u8g2, 0, 60, "Blue: back");
-        u8g2_SendBuffer(&u8g2);
+        drawCentered(u8g2, "CESSPOOL", 28);
+        drawCentered(u8g2, "Starting...", 44);
     }
 
-    void Display::showSettingsMenu(std::uint8_t selectedItem)
+    void Display::showMainMenuScreen()
     {
         auto &u8g2 = impl_->u8g2;
-        u8g2_ClearBuffer(&u8g2);
-        u8g2_SetFont(&u8g2, u8g2_font_6x10_tf);
-        u8g2_DrawStr(&u8g2, 0, 10, "SETTINGS");
-        u8g2_DrawHLine(&u8g2, 0, 14, 128);
-
-        const char *const items[] = {"Network", "Display", "About"};
-        for (std::uint8_t index = 0; index < 3; ++index)
-        {
-            u8g2_DrawStr(&u8g2, 2, 28 + index * 12, index == selectedItem ? ">" : " ");
-            u8g2_DrawStr(&u8g2, 12, 28 + index * 12, items[index]);
-        }
-
-        u8g2_SendBuffer(&u8g2);
+        u8g2_DrawStr(&u8g2, 0, 12, "MAIN MENU");
+        u8g2_DrawHLine(&u8g2, 0, 17, 128);
+        u8g2_DrawStr(&u8g2, 0, 32, "System ready");
     }
 
-    void Display::showSetting(std::uint8_t setting)
+    void Display::showSettingsScreen()
     {
         auto &u8g2 = impl_->u8g2;
-        u8g2_ClearBuffer(&u8g2);
-        u8g2_SetFont(&u8g2, u8g2_font_6x10_tf);
-        u8g2_DrawStr(&u8g2, 0, 10, "SETTING");
-        u8g2_DrawHLine(&u8g2, 0, 14, 128);
+        u8g2_DrawStr(&u8g2, 0, 12, "SETTINGS");
+        u8g2_DrawHLine(&u8g2, 0, 17, 128);
+    }
 
-        switch (setting)
-        {
-        case 0:
-            u8g2_DrawStr(&u8g2, 0, 32, "Network settings");
-            break;
-        case 1:
-            u8g2_DrawStr(&u8g2, 0, 32, "Display settings");
-            break;
-        default:
-            u8g2_DrawStr(&u8g2, 0, 32, "About Cesspool");
-            break;
-        }
-
-        u8g2_DrawStr(&u8g2, 0, 60, "Blue: back");
-        u8g2_SendBuffer(&u8g2);
+    void Display::showFirstConfigurationScreen()
+    {
+        drawCentered(impl_->u8g2, "CESSPOOL", 36);
     }
 }

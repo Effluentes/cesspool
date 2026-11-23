@@ -40,12 +40,13 @@ target_link_libraries(qpcpp PUBLIC idf::freertos)
 # todo(miekicki): change to real checking a platform and choose a right port for board/plaform
 set(ESP_32 TRUE)
 if(ESP_32)
-  set(EXTRA_COMPONENT_DIRS ${MAIN_DIR} # ${CMAKE_SOURCE_DIR}/platform/esp32/third_party
-      # ${CMAKE_SOURCE_DIR}/platform/esp32/components
-  )
+  set(EXTRA_COMPONENT_DIRS
+      ${MAIN_DIR}
+      ${CMAKE_SOURCE_DIR}/platforms/esp32/configuration/configuration
+      # ${CMAKE_SOURCE_DIR}/platforms/esp32/observability
+      ${CMAKE_SOURCE_DIR}/platforms/esp32/human_machine_interface/display)
   include($ENV{IDF_PATH}/tools/cmake/project.cmake)
   project(cesspool)
-  add_subdirectory(${CMAKE_SOURCE_DIR}/platforms/esp32)
 
 else()
   message(FATAL_ERROR "This project is intended to be built for ESP32 only. Please set ESP_32 to true.")

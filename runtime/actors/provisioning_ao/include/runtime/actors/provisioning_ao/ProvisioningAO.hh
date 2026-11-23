@@ -9,6 +9,8 @@ namespace runtime::actors
 
     private:
         Q_STATE_DECL(initial);
+        Q_STATE_DECL(idle);
         Q_STATE_DECL(provisioning);
+        Q_STATE_DECL(testProvisioning);
     };
 } // namespace runtime::actors

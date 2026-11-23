@@ -1,6 +1,4 @@
 #pragma once
-#include <expected>
-#include <runtime/composite_root/system_orchestrator/SystemOrchestratorErrorStatus.hh>
 #include <runtime/actors/system_ao/SystemAO.hh>
 #include <array>
 #include <cstddef>
@@ -8,14 +6,17 @@
 #include <runtime/actors/common/Priority.hh>
 #include <configuration/configuration/interface/ConfigurationLoader.hh>
 #include <runtime/actors/provisioning_ao/ProvisioningAO.hh>
-
+#include <runtime/actors/display_ao/DisplayAO.hh>
+#include <expected>
+#include "runtime/composite_root/system_orchestrator/SystemOrchestratorErrorStatus.hh"
 namespace runtime::composite_root
 {
     class SystemOrchestrator
     {
     public:
         explicit SystemOrchestrator(
-            configuration::interface::ConfigurationLoader &configurationLoader);
+            configuration::interface::ConfigurationLoader &configurationLoader,
+            human_machine_interface::interface::Display &display);
         std::expected<void, SystemOrchestratorErrorStatus> orchestrate();
 
     private:
@@ -62,7 +63,8 @@ namespace runtime::composite_root
                     parameters);
             }
         };
-        ActiveObject<actors::SystemAO, actors::ActiveObjectPriority::SYSTEM_AO_PRIORITY> systemAO_;
         ActiveObject<actors::ProvisioningAO, actors::ActiveObjectPriority::PROVISIONING_AO_PRIORITY> provisioningAO_;
+        ActiveObject<actors::SystemAO, actors::ActiveObjectPriority::SYSTEM_AO_PRIORITY> systemAO_;
+        ActiveObject<actors::DisplayAO, actors::ActiveObjectPriority::DISPLAY_AO_PRIORITY> displayAO_;
     };
 }

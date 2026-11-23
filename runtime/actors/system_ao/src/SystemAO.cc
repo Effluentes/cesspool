@@ -9,14 +9,15 @@ namespace runtime::actors
         configuration::interface::ConfigurationLoader &configurationLoader) noexcept
         : QP::QActive(Q_STATE_CAST(&SystemAO::initial)),
           provisioningAO_(provisioningAO),
-          configurationLoader_(configurationLoader),
-          startupTimer_(this, STARTUP_TIMEOUT_SIG)
+          configurationLoader_(configurationLoader)
     {
     }
 
     Q_STATE_DEF(SystemAO, initial)
     {
-        return tran(&SystemAO::boot);
+        (void)e;
+        std::printf("[SystemAO] Initializing SystemAO\n");
+        return tran(&boot);
     }
 
     Q_STATE_DEF(SystemAO, boot)
@@ -24,12 +25,6 @@ namespace runtime::actors
         QP::QState status;
         switch (e->sig)
         {
-        case Q_INIT_SIG:
-        {
-            std::printf("[SystemAO] boot Initializing SystemAO\n");
-            status = Q_HANDLED();
-            break;
-        }
         case Q_ENTRY_SIG:
         {
             std::printf("[SystemAO] State: BOOT\n");
@@ -41,9 +36,8 @@ namespace runtime::actors
             else
             {
                 std::printf("[SystemAO] Configuration loaded failed\n");
-                // QP::QEvt const kProvisioningRequired{PROVISIONING_REQUIRED_SIG, 0U, 0U};
-                auto event = Q_NEW(LargestEvt, CONFIGURATION_MISSING_SIG);
-                provisioningAO_.POST(event, &provisioningAO_);
+                auto event = Q_NEW(LargestEvt, Signals::CONFIGURATION_MISSING_SIG);
+                provisioningAO_.POST(event, this);
             }
             status = Q_HANDLED();
             break;

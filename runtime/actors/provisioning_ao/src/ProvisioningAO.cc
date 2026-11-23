@@ -11,7 +11,35 @@ namespace runtime::actors
 
     Q_STATE_DEF(ProvisioningAO, initial)
     {
-        return tran(&ProvisioningAO::provisioning);
+        (void)e;
+        std::printf("[ProvisioningAO] Initializing ProvisioningAO\n");
+        return tran(&ProvisioningAO::idle);
+    }
+
+    Q_STATE_DEF(ProvisioningAO, idle)
+    {
+        QP::QState status;
+        switch (e->sig)
+        {
+        case Q_ENTRY_SIG:
+        {
+            std::printf("[ProvisioningAO] State: IDLE\n");
+            status = Q_HANDLED();
+            break;
+        }
+        case Signals::CONFIGURATION_MISSING_SIG:
+        {
+            std::printf("[ProvisioningAO] Received CONFIGURATION_MISSING_SIG\n");
+            status = tran(&ProvisioningAO::provisioning);
+            break;
+        }
+        default:
+        {
+            status = super(&QP::QHsm::top);
+            break;
+        }
+        }
+        return status;
     }
 
     Q_STATE_DEF(ProvisioningAO, provisioning)
@@ -31,15 +59,29 @@ namespace runtime::actors
             status = Q_HANDLED();
             break;
         }
-        case Q_INIT_SIG:
+        default:
         {
-            std::printf("[ProvisioningAO] Initializing ProvisioningAO\n");
+            status = super(&QP::QHsm::top);
+            break;
+        }
+        }
+        return status;
+    }
+
+    Q_STATE_DEF(ProvisioningAO, testProvisioning)
+    {
+        QP::QState status;
+        switch (e->sig)
+        {
+        case Q_ENTRY_SIG:
+        {
+            std::printf("[ProvisioningAO] State: TEST_PROVISIONING\n");
             status = Q_HANDLED();
             break;
         }
-        case Signals::CONFIGURATION_MISSING_SIG:
+        case Q_EXIT_SIG:
         {
-            std::printf("[ProvisioningAO] Received CONFIGURATION_MISSING_SIG\n");
+            std::printf("[ProvisioningAO] Exiting TEST_PROVISIONING state\n");
             status = Q_HANDLED();
             break;
         }
@@ -51,4 +93,5 @@ namespace runtime::actors
         }
         return status;
     }
+
 } // namespace runtime::actors

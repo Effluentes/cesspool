@@ -8,7 +8,7 @@ namespace esp32::configuration
         ::configuration::Configuration config;
         config.wifi.ssid = "ESP32_SSID";
         config.wifi.password = "ESP32_PASSWORD";
-        // return config;
-        return std::unexpected(::configuration::interface::ConfigurationLoaderError::CONFIGURATION_NOT_FOUND);
+        return config;
+        // return std::unexpected(::configuration::interface::ConfigurationLoaderError::CONFIGURATION_NOT_FOUND);
     }
 }

@@ -30,7 +30,6 @@ namespace runtime::actors
 
         runtime::actors::ProvisioningAO &provisioningAO_;
         configuration::interface::ConfigurationLoader &configurationLoader_;
-        QP::QTimeEvt startupTimer_;
         std::uint8_t selectedMenuItem_{0};
         std::uint8_t selectedSetting_{0};
         bool configurationMissing_{false};
@@ -38,7 +37,7 @@ namespace runtime::actors
     };
     struct LargestEvt : public QP::QEvt
     {
-        LargestEvt() : QP::QEvt{static_cast<QP::QSignal>(MAX_SIG), 0, 0} {}
+        LargestEvt() : QP::QEvt{static_cast<QP::QSignal>(Signals::MAX_SIG), 0, 0} {}
     };
 
 } // namespace runtime::actors

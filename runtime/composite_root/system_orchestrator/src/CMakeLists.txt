@@ -21,6 +21,7 @@ target_include_directories(
 target_link_libraries(${NAME} PUBLIC
 actors::system_ao
 actors::provisioning_ao
+actors::display_ao
 actors::common)
 
 target_compile_options(

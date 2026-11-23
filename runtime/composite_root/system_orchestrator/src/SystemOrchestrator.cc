@@ -10,16 +10,18 @@ namespace runtime::composite_root
     }
 
     SystemOrchestrator::SystemOrchestrator(
-        configuration::interface::ConfigurationLoader &configurationLoader)
+        configuration::interface::ConfigurationLoader &configurationLoader,
+        human_machine_interface::interface::Display &display)
         : provisioningAO_(),
-          systemAO_(provisioningAO_.ao, configurationLoader)
-
+          systemAO_(provisioningAO_.ao, configurationLoader),
+          displayAO_(display)
     {
     }
 
     std::expected<void, SystemOrchestratorErrorStatus> SystemOrchestrator::orchestrate()
     {
         provisioningAO_.start();
+        displayAO_.start();
 
         systemAO_.start();
         return std::expected<void, SystemOrchestratorErrorStatus>();
